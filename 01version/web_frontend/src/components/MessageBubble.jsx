@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { FaUser, FaRobot, FaPlay, FaPause } from 'react-icons/fa';
 
 function MessageBubble({ contents }) {
@@ -10,8 +10,8 @@ function MessageBubble({ contents }) {
 
   // Audio player component
   const AudioPlayer = ({ audioSrc }) => {
-    const audioRef = React.useRef(null);
-    const [isPlaying, setIsPlaying] = React.useState(false);
+    const audioRef = useRef(null);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const togglePlay = () => {
       if (isPlaying) {
@@ -30,7 +30,7 @@ function MessageBubble({ contents }) {
         >
           {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} />}
         </button>
-        <span className="text-sm text-gray-500">Audio message</span>
+        <span className={`text-sm ${isUser ? 'text-white' : 'text-gray-500'}`}>Audio message</span>
         <audio
           ref={audioRef}
           src={audioSrc.startsWith('data:audio') ? audioSrc : `data:audio/mp3;base64,${audioSrc}`}

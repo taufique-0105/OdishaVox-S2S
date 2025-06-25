@@ -18,12 +18,12 @@ function TTSPage() {
 
   const convertTextToSpeech = async () => {
     const trimmedText = text.trim();
-    const API_KEY = import.meta.env.VITE_API_KEY;
+    const API_KEY = `${import.meta.env.VITE_SARVAM_API}/text-to-speech`;
     console.log(`API Key: ${API_KEY}`);
     try {
       setIsProcessing(true);
       setStatus('processing');
-      const response = await fetch("https://api.sarvam.ai/text-to-speech", {
+      const response = await fetch( API_KEY , {
         method: "POST",
         headers: {
           "api-subscription-key": "8cdff9d2-1180-46c2-86c3-f1b4b0c629d0",
