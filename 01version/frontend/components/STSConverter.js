@@ -207,10 +207,15 @@ const STSConverter = () => {
       Alert.alert("No Audio", "Please record an audio file first.");
       return;
     }
-    const host = process.env.EXPO_PUBLIC_URL;
-    const API_URL = new URL("/api/v1/sts", host).toString();
-    console.log(API_URL);
+    // const host = process.env.EXPO_PUBLIC_URL;
+    // const API_URL = new URL("/api/v1/sts", host).toString();
+    // console.log(API_URL);
+    const API_URL = "http://15.206.61.50:3000/api/v1/sts"; // Replace with your actual API URL
 
+    if (!API_URL) {
+      Alert.alert("Error", "API URL is not defined. Please check your configuration.", API_URL);
+      return;
+    }
     try {
       setIsLoading(true);
       console.log("Processing audio:", audioUri);
@@ -226,8 +231,9 @@ const STSConverter = () => {
         method: "POST",
         body: formData,
         headers: {
-          Accept: "application/json",
+          "Accept": "application/json",
           "Content-Type": "multipart/form-data",
+          "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
         },
       });
 

@@ -117,15 +117,20 @@ const STTConverter = () => {
         name: "recording.wav",
       });
 
-      const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
-      console.log("API URL:", apiUrl);
-
+      // const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
+      // console.log("API URL:", apiUrl);
+      const apiUrl = "http://15.206.61.50:3000/api/v1/stt"; // Replace with your actual API URL
+      if (!apiUrl) {
+        Alert.alert("Error", "API URL is not defined. Please check your configuration.", apiUrl);
+        return;
+      }
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
         headers: {
-          Accept: "application/json",
+          "Accept": "application/json",
           "Content-Type": "multipart/form-data",
+          "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
         },
       });
 

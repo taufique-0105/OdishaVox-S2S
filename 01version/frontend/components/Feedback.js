@@ -76,8 +76,13 @@ const Feedback = () => {
   };
 
   const handleSubmit = async () => {
-    const host = process.env.EXPO_PUBLIC_URL;
-    const URI = new URL("/api/v1/feedback/submit", host).toString();
+    // const host = process.env.EXPO_PUBLIC_URL;
+    // const URI = new URL("/api/v1/feedback/submit", host).toString();
+    const URI = "http://15.206.61.50:3000/api/v1/feedback/submit"; // Replace with your actual API URL
+    if (!URI) {
+      Alert.alert("Error", "API URL is not defined. Please check your configuration.", URI);
+      return;
+    }
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
@@ -86,6 +91,7 @@ const Feedback = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
           },
           body: JSON.stringify(formData),
         });
