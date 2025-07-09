@@ -9,6 +9,7 @@ import {
   Dimensions,
   Animated,
   Easing,
+  SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Footer from "./Footer";
@@ -63,165 +64,167 @@ const Home = ({ navigation }) => {
 
   return (
     <LinearGradient colors={["#f9f9ff", "#eef2ff"]} style={styles.gradient}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.container}>
-          {/* Logo & App Name */}
-          <View style={styles.headerContainer}>
-            <Animated.Image
-              source={require("../assets/download.png")}
-              style={[
-                styles.logo,
-                {
-                  opacity: logoOpacity,
-                  transform: [
-                    {
-                      scale: logoOpacity.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.8, 1],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-              resizeMode="contain"
-            />
-            <Animated.Text
-              style={[
-                styles.appName,
-                {
-                  opacity: logoOpacity,
-                  transform: [{ scale: titleScale }],
-                },
-              ]}
-            >
-              OdishaVox
-            </Animated.Text>
-            <Animated.Text
-              style={[
-                styles.tagline,
-                {
-                  opacity: logoOpacity,
-                  transform: [
-                    {
-                      translateY: logoOpacity.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [10, 0],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              Your Odia Voice Companion
-            </Animated.Text>
-          </View>
+      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
+            {/* Logo & App Name */}
+            <View style={styles.headerContainer}>
+              <Animated.Image
+                source={require("../assets/download.png")}
+                style={[
+                  styles.logo,
+                  {
+                    opacity: logoOpacity,
+                    transform: [
+                      {
+                        scale: logoOpacity.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+                resizeMode="contain"
+              />
+              <Animated.Text
+                style={[
+                  styles.appName,
+                  {
+                    opacity: logoOpacity,
+                    transform: [{ scale: titleScale }],
+                  },
+                ]}
+              >
+                OdishaVox
+              </Animated.Text>
+              <Animated.Text
+                style={[
+                  styles.tagline,
+                  {
+                    opacity: logoOpacity,
+                    transform: [
+                      {
+                        translateY: logoOpacity.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [10, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                Your Odia Voice Companion
+              </Animated.Text>
+            </View>
 
-          {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <Animated.View
-              style={{
-                transform: [{ translateY: buttonTranslateY }],
-                opacity: buttonTranslateY.interpolate({
-                  inputRange: [0, 30],
-                  outputRange: [1, 0],
-                }),
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => navigation.navigate("STS")}
+            {/* Action Buttons */}
+            <View style={styles.buttonContainer}>
+              <Animated.View
+                style={{
+                  transform: [{ translateY: buttonTranslateY }],
+                  opacity: buttonTranslateY.interpolate({
+                    inputRange: [0, 30],
+                    outputRange: [1, 0],
+                  }),
+                }}
               >
-                <LinearGradient
-                  colors={["#ff7675", "#fd79a8"]}
-                  style={[styles.button, styles.buttonElevation]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  onPress={() => navigation.navigate("STS")}
                 >
-                  <Animated.View
-                    style={{ transform: [{ scale: buttonScale }] }}
+                  <LinearGradient
+                    colors={["#ff7675", "#fd79a8"]}
+                    style={[styles.button, styles.buttonElevation]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    <Text style={styles.buttonText}>Speech to Speech</Text>
-                    <Text style={styles.buttonSubtext}>
-                      Convert Odia speech to different voice
-                    </Text>
-                  </Animated.View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </Animated.View>
-            <Animated.View
-              style={{
-                transform: [{ translateY: buttonTranslateY }],
-                opacity: buttonTranslateY.interpolate({
-                  inputRange: [0, 30],
-                  outputRange: [1, 0],
-                }),
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => navigation.navigate("TTS")}
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScale }] }}
+                    >
+                      <Text style={styles.buttonText}>Speech to Speech</Text>
+                      <Text style={styles.buttonSubtext}>
+                        Convert Odia speech to different voice
+                      </Text>
+                    </Animated.View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+              <Animated.View
+                style={{
+                  transform: [{ translateY: buttonTranslateY }],
+                  opacity: buttonTranslateY.interpolate({
+                    inputRange: [0, 30],
+                    outputRange: [1, 0],
+                  }),
+                }}
               >
-                <LinearGradient
-                  colors={["#4a6cf7", "#6a8eff"]}
-                  style={[styles.button, styles.buttonElevation]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  onPress={() => navigation.navigate("TTS")}
                 >
-                  <Animated.View
-                    style={{ transform: [{ scale: buttonScale }] }}
+                  <LinearGradient
+                    colors={["#4a6cf7", "#6a8eff"]}
+                    style={[styles.button, styles.buttonElevation]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    <Text style={styles.buttonText}>Text to Speech</Text>
-                    <Text style={styles.buttonSubtext}>
-                      Convert Odia text to natural speech
-                    </Text>
-                  </Animated.View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </Animated.View>
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScale }] }}
+                    >
+                      <Text style={styles.buttonText}>Text to Speech</Text>
+                      <Text style={styles.buttonSubtext}>
+                        Convert Odia text to natural speech
+                      </Text>
+                    </Animated.View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
 
-            <Animated.View
-              style={{
-                transform: [{ translateY: buttonTranslateY }],
-                opacity: buttonTranslateY.interpolate({
-                  inputRange: [0, 30],
-                  outputRange: [1, 0],
-                }),
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                onPress={() => navigation.navigate("STT")}
+              <Animated.View
+                style={{
+                  transform: [{ translateY: buttonTranslateY }],
+                  opacity: buttonTranslateY.interpolate({
+                    inputRange: [0, 30],
+                    outputRange: [1, 0],
+                  }),
+                }}
               >
-                <LinearGradient
-                  colors={["#00b894", "#55efc4"]}
-                  style={[styles.button, styles.buttonElevation]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  onPress={() => navigation.navigate("STT")}
                 >
-                  <Animated.View
-                    style={{ transform: [{ scale: buttonScale }] }}
+                  <LinearGradient
+                    colors={["#00b894", "#55efc4"]}
+                    style={[styles.button, styles.buttonElevation]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    <Text style={styles.buttonText}>Speech to Text</Text>
-                    <Text style={styles.buttonSubtext}>
-                      Transcribe Odia speech to text
-                    </Text>
-                  </Animated.View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </Animated.View>
+                    <Animated.View
+                      style={{ transform: [{ scale: buttonScale }] }}
+                    >
+                      <Text style={styles.buttonText}>Speech to Text</Text>
+                      <Text style={styles.buttonSubtext}>
+                        Transcribe Odia speech to text
+                      </Text>
+                    </Animated.View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
           </View>
-        </View>
-        <Footer />
-      </ScrollView>
+          <Footer />
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 };
@@ -229,6 +232,8 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
+    padding: 0,
+    // backgroundColor: "red",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -236,8 +241,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
   },
   headerContainer: {
     flex: 1,

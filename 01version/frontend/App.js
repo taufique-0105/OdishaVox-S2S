@@ -1,5 +1,9 @@
 import React from "react";
-import { View, StyleSheet, StatusBar, SafeAreaView } from "react-native";
+import { View, StyleSheet, StatusBar } from "react-native";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { NavigationContainer } from "@react-navigation/native";
@@ -15,76 +19,90 @@ import OfflineNotice from "./components/OfflineNotice";
 
 const Stack = createNativeStackNavigator();
 
+function MainApp() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={[
+        styles.appContainer,
+        {
+          // paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            header: ({ navigation }) => <Header navigation={navigation} />,
+            contentStyle: { backgroundColor: "#fff" },
+            animation: "fade",
+            gestureEnabled: true,
+          }}
+        >
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="TTS"
+            component={TTSPlayer}
+            options={{
+              gestureDirection: "horizontal",
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name="STT"
+            component={STTConverter}
+            options={{
+              gestureDirection: "horizontal",
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name="Feedback"
+            component={Feedback}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name="STS"
+            component={STSConverter}
+            options={{
+              gestureDirection: "vertical",
+              headerShown: true,
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      {/* <Footer /> */}
+    </View>
+  );
+}
+
 export default function App() {
   return (
-    <NetworkProvider>
-      <OfflineNotice />
-      {/* <ThemeProvider> */}
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <View style={styles.appContainer}>
-          <NavigationContainer>
-            <Header />
-            <View style={styles.contentContainer}>
-              <Stack.Navigator
-                initialRouteName="Home"
-                screenOptions={{
-                  headerShown: false,
-                  animation: "fade",
-                  gestureEnabled: true,
-                }}
-              >
-                <Stack.Screen name="Home" component={Home} />
-                <Stack.Screen
-                  name="TTS"
-                  component={TTSPlayer}
-                  options={{ gestureDirection: "horizontal" }}
-                />
-                <Stack.Screen
-                  name="STT"
-                  component={STTConverter}
-                  options={{ gestureDirection: "horizontal" }}
-                />
-                <Stack.Screen
-                  name="Feedback"
-                  component={Feedback}
-                  options={{ presentation: "modal" }}
-                />
-                <Stack.Screen
-                  name="STS"
-                  component={STSConverter}
-                  options={{ gestureDirection: "vertical" }}
-                />
-              </Stack.Navigator>
-            </View>
-          </NavigationContainer>
-        </View>
-      </SafeAreaView>
-      {/* </ThemeProvider> */}
-    </NetworkProvider>
+    <SafeAreaProvider>
+      <NetworkProvider>
+        <OfflineNotice />
+        <ThemeProvider>
+          <MainApp />
+        </ThemeProvider>
+      </NetworkProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
   appContainer: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  shadow: {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
 });
