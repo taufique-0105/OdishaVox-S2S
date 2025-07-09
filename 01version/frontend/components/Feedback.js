@@ -76,9 +76,9 @@ const Feedback = () => {
   };
 
   const handleSubmit = async () => {
-    // const host = process.env.EXPO_PUBLIC_URL;
+    const host = process.env.EXPO_PUBLIC_URL;
     // const URI = new URL("/api/v1/feedback/submit", host).toString();
-    const URI = "http://15.206.61.50:3000/api/v1/feedback/submit"; // Replace with your actual API URL
+    const URI = `${host}/api/v1/feedback/submit`; // Replace with your actual API URL
     if (!URI) {
       Alert.alert("Error", "API URL is not defined. Please check your configuration.", URI);
       return;
