@@ -18,6 +18,7 @@ import {
 } from "expo-audio";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import MessageBubble from "../utils/MessageBubble"; // Assuming MessageBubble is in '../utils/MessageBubble'
 
 const STTConverter = () => {
   const scrollViewRef = useRef();
@@ -104,9 +105,11 @@ const STTConverter = () => {
       const audioMessage = {
         id: `audio_${Date.now()}`,
         audioUri: uri,
-        isUser: true,
-        isAudio: true,
+        type: "user", // Changed from isUser: true
+        content_type: "audio", // Changed from isAudio: true
         timestamp: new Date().toLocaleTimeString(),
+        text: "Voice message", // Added for MessageBubble consistency
+        isError: false,
       };
       setMessages((prev) => [...prev, audioMessage]);
 
@@ -117,26 +120,32 @@ const STTConverter = () => {
         name: "recording.wav",
       });
 
-      // const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
-      // console.log("API URL:", apiUrl);
-      const apiUrl = "http://15.206.61.50:3000/api/v1/stt"; // Replace with your actual API URL
+      const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
+      console.log("API URL:", apiUrl);
       if (!apiUrl) {
-        Alert.alert("Error", "API URL is not defined. Please check your configuration.", apiUrl);
+        Alert.alert(
+          "Error",
+          "API URL is not defined. Please check your configuration.",
+          apiUrl
+        );
         return;
       }
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
           "Content-Type": "multipart/form-data",
-          "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+          "user-agent":
+            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
         },
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to convert speech to text");
+        throw new Error(
+          errorData.message || "Failed to convert speech to text"
+        );
       }
 
       const data = await response.json();
@@ -144,9 +153,10 @@ const STTConverter = () => {
         const textMessage = {
           id: `text_${Date.now()}`,
           text: data.transcript,
-          isUser: false,
-          isAudio: false,
+          type: "api", // Changed from isUser: false
+          content_type: "text", // Changed from isAudio: false
           timestamp: new Date().toLocaleTimeString(),
+          isError: false,
         };
         setMessages((prev) => [...prev, textMessage]);
       } else {
@@ -154,7 +164,21 @@ const STTConverter = () => {
       }
     } catch (error) {
       console.error("STT Error:", error);
-      Alert.alert("Conversion Error", error.message || "Failed to convert speech to text");
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error_${Date.now()}`,
+          text: error.message || "Failed to convert speech to text",
+          type: "api",
+          content_type: "text",
+          timestamp: new Date().toLocaleTimeString(),
+          isError: true,
+        },
+      ]);
+      Alert.alert(
+        "Conversion Error",
+        error.message || "Failed to convert speech to text"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -188,55 +212,6 @@ const STTConverter = () => {
     }
   }, [playerStatus]);
 
-  const renderMessage = (message) => {
-    if (message.isAudio) {
-      return (
-        <View
-          key={message.id}
-          style={[styles.messageBubble, message.isUser ? styles.userBubble : styles.aiBubble]}
-        >
-          <View style={styles.audioMessageContainer}>
-            <Pressable
-              style={[
-                styles.audioPlayButton,
-                playingMessageId === message.id && styles.playingButton,
-              ]}
-              onPress={() => playMessageAudio(message.id, message.audioUri)}
-            >
-              <MaterialIcons
-                name={playingMessageId === message.id ? "pause" : "play-arrow"}
-                size={20}
-                color={message.isUser ? "#fff" : "#6200ee"}
-              />
-            </Pressable>
-            <View style={styles.audioInfo}>
-              <MaterialIcons
-                name="keyboard-voice"
-                size={20}
-                color={message.isUser ? "#fff" : "#6200ee"}
-                style={styles.audioIcon}
-              />
-              <Text style={[styles.audioLabel, { color: message.isUser ? "#fff" : "#666" }]}>
-                Voice message
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.timestamp}>{message.timestamp}</Text>
-        </View>
-      );
-    } else {
-      return (
-        <View
-          key={message.id}
-          style={[styles.messageBubble, message.isUser ? styles.userBubble : styles.aiBubble]}
-        >
-          <Text style={message.isUser ? styles.userText : styles.aiText}>{message.text}</Text>
-          <Text style={styles.timestamp}>{message.timestamp}</Text>
-        </View>
-      );
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -246,19 +221,35 @@ const STTConverter = () => {
       <View style={styles.chatContainer}>
         {messages.length === 0 ? (
           <View style={styles.emptyStateContainer}>
-            <MaterialIcons name="mic" size={48} color="#6200ee" style={styles.emptyIcon} />
+            <MaterialIcons
+              name="mic"
+              size={48}
+              color="#6200ee"
+              style={styles.emptyIcon}
+            />
             <Text style={styles.emptyTitle}>No messages yet</Text>
             <Text style={styles.emptySubtitle}>
-              Press the <Text style={styles.highlightText}>microphone button</Text> below to begin
+              Press the{" "}
+              <Text style={styles.highlightText}>microphone button</Text> below
+              to begin
             </Text>
           </View>
         ) : (
           <ScrollView
             contentContainerStyle={styles.chatContent}
             ref={scrollViewRef}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
           >
-            {messages.map(renderMessage)}
+            {messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                playAudio={playMessageAudio}
+                isPlaying={playingMessageId === message.id}
+              />
+            ))}
           </ScrollView>
         )}
       </View>
@@ -272,7 +263,11 @@ const STTConverter = () => {
           onPress={isRecording ? stopRecording : record}
           disabled={isLoading}
         >
-          <MaterialIcons name={isRecording ? "stop" : "mic"} size={24} color="#fff" />
+          <MaterialIcons
+            name={isRecording ? "stop" : "mic"}
+            size={24}
+            color="#fff"
+          />
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -347,66 +342,6 @@ const styles = StyleSheet.create({
   },
   chatContent: {
     padding: 16,
-  },
-  messageBubble: {
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    maxWidth: "80%",
-  },
-  userBubble: {
-    backgroundColor: "#6200ee",
-    alignSelf: "flex-end",
-    borderBottomRightRadius: 4,
-  },
-  aiBubble: {
-    backgroundColor: "#f0f0f0",
-    alignSelf: "flex-start",
-    borderBottomLeftRadius: 4,
-  },
-  userText: {
-    color: "#fff",
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  aiText: {
-    color: "#333",
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  timestamp: {
-    fontSize: 11,
-    color: "#999",
-    marginTop: 4,
-    textAlign: "right",
-  },
-  audioMessageContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    minWidth: 160,
-  },
-  audioPlayButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  playingButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  audioInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  audioIcon: {
-    marginRight: 8,
-  },
-  audioLabel: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   buttonContainer: {
     flexDirection: "row",

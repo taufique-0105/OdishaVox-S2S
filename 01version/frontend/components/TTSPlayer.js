@@ -19,6 +19,7 @@ import { useAudioPlayer } from "expo-audio";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as Network from "expo-network";
+import MessageBubble from "../utils/MessageBubble";
 
 const TTSComponent = ({ initialText = "" }) => {
   const [text, setText] = useState(initialText);
@@ -31,7 +32,7 @@ const TTSComponent = ({ initialText = "" }) => {
   const flatListRef = useRef(null);
   const navigation = useNavigation();
 
-  const player = useAudioPlayer(audioUri);
+  // const player = useAudioPlayer(audioUri);
 
   const languages = [
     { code: "en-IN", name: "English (India)" },
@@ -53,9 +54,7 @@ const TTSComponent = ({ initialText = "" }) => {
 
   useEffect(() => {
     if (messages.length > 0 && flatListRef.current) {
-      setTimeout(() => {
-        flatListRef.current.scrollToEnd({ animated: true });
-      }, 100);
+      flatListRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
 
@@ -66,88 +65,61 @@ const TTSComponent = ({ initialText = "" }) => {
       if (!status.isConnected) {
         Alert.alert(
           "No Internet Connection",
-          "Please check your internet connection and try again."
+          "Please check your internet connection"
         );
       }
     } catch (error) {
-      console.error("Network check error:", error);
-      Alert.alert(
-        "Network Error",
-        "Unable to check network status. Some features may not work properly."
-      );
+      Alert.alert("Network Error", "Unable to check network status");
     }
   };
 
-  const fetchTTS = async () => {
-    // Check for empty input
+  const handleSubmit = () => {
     if (!text.trim()) {
       Alert.alert("Input Required", "Please enter some text to convert");
       return;
     }
 
-    // Check input length (API might have limits)
     if (text.length > 1000) {
-      Alert.alert(
-        "Text Too Long",
-        "Please keep your text under 1000 characters for optimal performance."
-      );
+      Alert.alert("Text Too Long", "Please keep under 1000 characters");
       return;
     }
 
-    // Check network connection
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: text.trim(),
+        type: "user",
+        content_type: "text",
+        isError: false,
+      },
+    ]);
+
+    fetchTTS();
+  };
+
+  const fetchTTS = async () => {
     if (!networkStatus?.isConnected) {
-      Alert.alert(
-        "No Internet Connection",
-        "Please check your internet connection and try again. Inside TTSConverter",
-        [
-          {
-            text: "Check Connection",
-            onPress: checkNetworkStatus,
-          },
-        ]
-      );
+      Alert.alert("No Internet Connection", "Please check your connection");
       return;
     }
 
     setLoading(true);
-    const URI = "http://15.206.61.50:3000/api/v1/tts"; // Replace with your actual API URL
+    const host = process.env.EXPO_PUBLIC_URL;
+    const URI = `${host}/api/v1/tts`;
 
     if (!URI) {
-      Alert.alert(
-        "Configuration Error",
-        "API URL is not defined. Please check your configuration."
-      );
+      Alert.alert("Configuration Error", "API URL is not defined");
       setLoading(false);
       return;
     }
 
     try {
-      const newUserMessage = {
-        id: Date.now(),
-        text: text.trim(),
-        isUser: true,
-        language: getLanguageName(selectedLanguage),
-      };
-      setMessages((prev) => [...prev, newUserMessage]);
-
-      // Check if the URI is reachable
-      try {
-        const networkResponse = await fetch(URI, { method: "HEAD" });
-        if (!networkResponse.ok) {
-          throw new Error(
-            `Server not reachable (Status: ${networkResponse.status})`
-          );
-        }
-      } catch (error) {
-        throw new Error(`Server not reachable: ${error.message}`);
-      }
-
       const response = await fetch(URI, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+          "user-agent": "OdishaVoxApp/0.1.0",
         },
         body: JSON.stringify({
           text: text.trim(),
@@ -156,126 +128,63 @@ const TTSComponent = ({ initialText = "" }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Server responded with ${response.status}: ${response.statusText}`
-        );
+        throw new Error(`Server responded with ${response.status}`);
       }
 
       const data = await response.json();
-
       if (!data.audios?.[0]) {
-        throw new Error(
-          data.message || "No audio data received from the server"
-        );
+        throw new Error("No audio data received");
       }
 
-      const timestamp = Date.now();
-      const fileName = `tts-${timestamp}.wav`;
+      const fileName = `tts-${Date.now()}.wav`;
       const fileUri = FileSystem.cacheDirectory + fileName;
 
-      try {
-        await FileSystem.writeAsStringAsync(fileUri, data.audios[0], {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-      } catch (fileError) {
-        throw new Error(`Failed to save audio file: ${fileError.message}`);
-      }
-
-      // Verify the file was created
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (!fileInfo.exists) {
-        throw new Error("Audio file was not created successfully");
-      }
+      await FileSystem.writeAsStringAsync(fileUri, data.audios[0], {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
       setAudioUri(fileUri);
-
-      const newSystemMessage = {
-        id: Date.now() + 1,
-        text: `Audio generated in ${getLanguageName(selectedLanguage)}`,
-        isUser: false,
-        audioUri: fileUri,
-      };
-      setMessages((prev) => [...prev, newSystemMessage]);
-
-      setText("");
-    } catch (error) {
-      console.error("TTS Error:", error);
-
-      let errorMessage = error.message || "Failed to generate audio";
-
-      // Handle specific error cases
-      if (error.message.includes("Network request failed")) {
-        errorMessage =
-          "Network request failed. Please check your internet connection.";
-      } else if (error.message.includes("Server not reachable")) {
-        errorMessage =
-          "Could not connect to the TTS service. Please try again later.";
-      } else if (error.message.includes("Failed to save audio file")) {
-        errorMessage =
-          "Failed to save the audio file. Please check storage permissions.";
-      }
-
-      Alert.alert("Conversion Error", errorMessage, [
+      setMessages((prev) => [
+        ...prev,
         {
-          text: "Retry",
-          onPress: fetchTTS,
-          style: "default",
-        },
-        {
-          text: "OK",
-          style: "cancel",
+          id: Date.now() + 1,
+          text: `Audio generated in ${getLanguageName(selectedLanguage)}`,
+          type: "api",
+          content_type: "audio",
+          audioUri: fileUri,
+          isError: false,
         },
       ]);
-
-      const errorMessageObj = {
-        id: Date.now() + 1,
-        text: errorMessage,
-        isUser: false,
-        isError: true,
-      };
-      setMessages((prev) => [...prev, errorMessageObj]);
+      setText("");
+    } catch (error) {
+      Alert.alert("Conversion Error", error.message);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: error.message,
+          type: "api",
+          isError: true,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePlay = async (uri) => {
-    if (!uri) {
-      Alert.alert("Playback Error", "No audio file to play");
-      return;
-    }
+  // const handlePlay = async (uri) => {
+  //   if (!uri) {
+  //     Alert.alert("Playback Error", "No audio file to play");
+  //     return;
+  //   }
 
-    try {
-      // Check if file exists
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-      if (!fileInfo.exists) {
-        throw new Error("Audio file not found");
-      }
-
-      // Check file size to ensure it's valid
-      if (fileInfo.size < 100) {
-        // Assuming audio files should be >100 bytes
-        throw new Error("Audio file appears to be corrupted or empty");
-      }
-
-      player.replace(uri);
-      await player.play();
-    } catch (error) {
-      console.error("Playback Error: ", error);
-      Alert.alert(
-        "Playback Error",
-        error.message || "Failed to play the audio file",
-        [
-          {
-            text: "Try Again",
-            onPress: () => handlePlay(uri),
-          },
-        ]
-      );
-    }
-  };
+  //   try {
+  //     player.replace(uri);
+  //     await player.play();
+  //   } catch (error) {
+  //     Alert.alert("Playback Error", error.message);
+  //   }
+  // };
 
   const handleLanguageSelect = (languageCode) => {
     setSelectedLanguage(languageCode);
@@ -283,49 +192,18 @@ const TTSComponent = ({ initialText = "" }) => {
   };
 
   const getLanguageName = (code) => {
-    const lang = languages.find((l) => l.code === code);
-    return lang ? lang.name : "Select Language";
+    return languages.find((l) => l.code === code)?.name || "Select Language";
   };
-
-  const renderMessage = ({ item }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        item.isUser ? styles.userMessage : styles.systemMessage,
-        item.isError && styles.errorMessage,
-      ]}
-    >
-      {!item.isUser && !item.isError && (
-        <Text style={styles.languageTag}>{item.text}</Text>
-      )}
-
-      {item.isUser ? (
-        <>
-          <Text style={styles.messageText}>{item.text}</Text>
-          <Text style={styles.languageTag}>{item.language}</Text>
-        </>
-      ) : item.isError ? (
-        <Text style={styles.messageText}>{item.text}</Text>
-      ) : (
-        <TouchableOpacity
-          style={styles.playMessageButton}
-          onPress={() => handlePlay(item.audioUri)}
-        >
-          <MaterialIcons name="play-circle-filled" size={24} color="#2ecc71" />
-          <Text style={styles.playMessageText}>Play Audio</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.container}
     >
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
         <MaterialIcons name="arrow-back" size={20} color="#000" />
       </Pressable>
+
       <View style={styles.mainContent}>
         <Text style={styles.title}>Text-to-Speech Converter</Text>
 
@@ -343,23 +221,25 @@ const TTSComponent = ({ initialText = "" }) => {
           {messages.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                No messages yet. Enter text below and press the send button to convert it to speech in your selected language.
+                {" "}
+                Enter text below to convert it to speech{" "}
               </Text>
             </View>
           ) : (
             <FlatList
               ref={flatListRef}
               data={messages}
-              renderItem={renderMessage}
+              renderItem={({ item }) => <MessageBubble message={item} />}
               keyExtractor={(item) => item.id.toString()}
-              contentContainerStyle={styles.messagesList}
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+              onLayout={() => flatListRef.current?.scrollToEnd()}
             />
           )}
         </View>
 
         <Modal
           visible={showLanguageModal}
-          transparent={true}
+          transparent
           animationType="slide"
           onRequestClose={() => setShowLanguageModal(false)}
         >
@@ -399,7 +279,7 @@ const TTSComponent = ({ initialText = "" }) => {
         </Modal>
       </View>
 
-      <View style={[styles.inputWrapper]}>
+      <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
           placeholder="Type or paste your text here..."
@@ -411,7 +291,7 @@ const TTSComponent = ({ initialText = "" }) => {
         />
         <TouchableOpacity
           style={[styles.sendButton, loading && styles.buttonDisabled]}
-          onPress={fetchTTS}
+          onPress={handleSubmit}
           disabled={loading}
         >
           {loading ? (
@@ -480,56 +360,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#7f8c8d",
     textAlign: "center",
-    lineHeight: 24,
-  },
-  messagesList: {
-    paddingBottom: 10,
-  },
-  messageContainer: {
-    maxWidth: "80%",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  userMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: "#3498db",
-    borderTopRightRadius: 0,
-  },
-  systemMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 0,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  errorMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: "#ffecec",
-    borderColor: "#ffb3b3",
-    borderWidth: 1,
-  },
-  messageText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  userMessageText: {
-    color: "#fff",
-  },
-  languageTag: {
-    fontSize: 12,
-    color: "#7f8c8d",
-    marginTop: 4,
-  },
-  playMessageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 5,
-  },
-  playMessageText: {
-    marginLeft: 5,
-    color: "#2c3e50",
-    fontWeight: "bold",
   },
   inputWrapper: {
     flexDirection: "row",

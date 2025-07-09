@@ -1,7 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
+  ScrollView, // Changed from FlatList
   Pressable,
   StyleSheet,
   Text,
@@ -19,6 +19,7 @@ import {
 import * as FileSystem from "expo-file-system";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import MessageBubble from "../utils/MessageBubble"; // Import MessageBubble
 
 const WaveAnimation = () => {
   const barHeights = [
@@ -60,7 +61,14 @@ const WaveAnimation = () => {
   };
 
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-end", height: 24, marginLeft: 8 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-end",
+        height: 24,
+        marginLeft: 8,
+      }}
+    >
       {barHeights.map((height, index) => (
         <Animated.View key={index} style={[barStyle, { height }]} />
       ))}
@@ -77,7 +85,7 @@ const STSConverter = () => {
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigation = useNavigation();
-  const flatListRef = useRef(null);
+  const scrollViewRef = useRef(null); // Changed from flatListRef
 
   const player = useAudioPlayer(null);
   const playerStatus = useAudioPlayerStatus(player);
@@ -94,27 +102,7 @@ const STSConverter = () => {
 
   const audioRecorder = useAudioRecorder(recordingOptions);
 
-  const playing = async (uri) => {
-    try {
-      if (currentlyPlaying === uri) {
-        player.pause();
-        setCurrentlyPlaying(null);
-        return;
-      }
-
-      if (currentlyPlaying) {
-        player.pause();
-      }
-
-      player.replace(uri);
-      player.play();
-      setCurrentlyPlaying(uri);
-    } catch (error) {
-      console.error("Playback error:", error);
-      Alert.alert("Playback Error", "Failed to play the audio");
-      setCurrentlyPlaying(null);
-    }
-  };
+  // Renamed to match STTConverter's function name and adjusted for MessageBubble props
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -183,15 +171,23 @@ const STSConverter = () => {
       setIsRecording(false);
 
       const newMessage = {
-        id: Date.now().toString(),
-        uri: uri,
-        type: "sent",
-        timestamp: new Date(),
+        id: `sent_${Date.now().toString()}`, // Added prefix for uniqueness
+        audioUri: uri, // Changed to audioUri
+        type: "user", // Changed to 'user' for consistency with STTConverter
+        content_type: "audio", // Added for MessageBubble consistency
+        timestamp: new Date().toLocaleTimeString([], {
+          // Changed to locale time string
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        text: "Voice message", // Added for MessageBubble consistency
+        isError: false,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-      if (flatListRef.current) {
-        flatListRef.current.scrollToEnd({ animated: true });
+      if (scrollViewRef.current) {
+        // Changed to scrollViewRef
+        scrollViewRef.current.scrollToEnd({ animated: true });
       }
     } catch (error) {
       console.error("Stop recording error:", error);
@@ -207,13 +203,15 @@ const STSConverter = () => {
       Alert.alert("No Audio", "Please record an audio file first.");
       return;
     }
-    // const host = process.env.EXPO_PUBLIC_URL;
-    // const API_URL = new URL("/api/v1/sts", host).toString();
-    // console.log(API_URL);
-    const API_URL = "http://15.206.61.50:3000/api/v1/sts"; // Replace with your actual API URL
+    const host = process.env.EXPO_PUBLIC_URL;
+    const API_URL = `${host}/api/v1/sts`;
 
     if (!API_URL) {
-      Alert.alert("Error", "API URL is not defined. Please check your configuration.", API_URL);
+      Alert.alert(
+        "Error",
+        "API URL is not defined. Please check your configuration.",
+        API_URL
+      );
       return;
     }
     try {
@@ -231,9 +229,10 @@ const STSConverter = () => {
         method: "POST",
         body: formData,
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
           "Content-Type": "multipart/form-data",
-          "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+          "user-agent":
+            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10, dev-v0.1.1)",
         },
       });
 
@@ -256,15 +255,23 @@ const STSConverter = () => {
       });
 
       const newMessage = {
-        id: Date.now().toString(),
-        uri: fileUri,
-        type: "received",
-        timestamp: new Date(),
+        id: `received_${Date.now().toString()}`, // Added prefix for uniqueness
+        audioUri: fileUri, // Changed to audioUri
+        type: "api", // Changed to 'api' for consistency with STTConverter
+        content_type: "audio", // Added for MessageBubble consistency
+        timestamp: new Date().toLocaleTimeString([], {
+          // Changed to locale time string
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        text: "Audio response", // Added for MessageBubble consistency
+        isError: false,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-      if (flatListRef.current) {
-        flatListRef.current.scrollToEnd({ animated: true });
+      if (scrollViewRef.current) {
+        // Changed to scrollViewRef
+        scrollViewRef.current.scrollToEnd({ animated: true });
       }
       console.log("Processed audio saved at", fileUri);
     } catch (error) {
@@ -273,6 +280,18 @@ const STSConverter = () => {
         "Processing Error",
         error.message || "Failed to process audio"
       );
+      setMessages((prev) => [
+        // Add error message
+        ...prev,
+        {
+          id: `error_${Date.now()}`,
+          text: error.message || "Failed to process audio",
+          type: "api",
+          content_type: "text",
+          timestamp: new Date().toLocaleTimeString(),
+          isError: true,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -289,32 +308,6 @@ const STSConverter = () => {
     }
   }, [playerStatus]);
 
-  const renderMessage = ({ item }) => {
-    return (
-      <View
-        style={[
-          styles.messageContainer,
-          item.type === "sent" ? styles.sentMessage : styles.receivedMessage,
-        ]}
-      >
-        <Pressable style={styles.playButton} onPress={() => playing(item.uri)}>
-          <Ionicons
-            name={currentlyPlaying === item.uri ? "pause" : "play"}
-            size={24}
-            color="white"
-          />
-        </Pressable>
-        {currentlyPlaying === item.uri && <WaveAnimation />}
-        <Text style={styles.messageTime}>
-          {item.timestamp.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -329,15 +322,18 @@ const STSConverter = () => {
           <Text style={styles.title}>Speech to Speech</Text>
           <Text style={styles.subtitle}>Record, convert, and play audio</Text>
           <View style={styles.messagesContainer}>
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={(item) => item.id}
+            <ScrollView
+              ref={scrollViewRef} // Changed from FlatList
               contentContainerStyle={styles.messagesList}
-              ListEmptyComponent={
+              onContentSizeChange={() =>
+                scrollViewRef.current?.scrollToEnd({ animated: true })
+              }
+            >
+              {messages.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>Welcome to Speech to Speech</Text>
+                  <Text style={styles.emptyText}>
+                    Welcome to Speech to Speech
+                  </Text>
                   <Text style={styles.emptySubText}>
                     Record your voice, and we’ll convert it to another speech.
                   </Text>
@@ -345,8 +341,22 @@ const STSConverter = () => {
                     Start by pressing the microphone button below.
                   </Text>
                 </View>
-              }
-            />
+              ) : (
+                messages.map((item) => (
+                  <MessageBubble
+                    key={item.id}
+                    message={item}
+                    isPlaying={currentlyPlaying === item.audioUri && isPlaying}
+                    // Pass WaveAnimation only if playing this specific audio
+                    WaveAnimationComponent={
+                      currentlyPlaying === item.audioUri && isPlaying
+                        ? WaveAnimation
+                        : null
+                    }
+                  />
+                ))
+              )}
+            </ScrollView>
           </View>
           <View style={styles.mainButtonContainer}>
             <Pressable
@@ -428,32 +438,6 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     paddingBottom: 20,
-  },
-  messageContainer: {
-    maxWidth: "70%",
-    padding: 12,
-    borderRadius: 18,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sentMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: "#4263eb",
-  },
-  receivedMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: "#7048e8",
-  },
-  playButton: {
-    padding: 8,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  messageTime: {
-    color: "white",
-    fontSize: 12,
-    opacity: 0.8,
   },
   mainButtonContainer: {
     width: "100%",
