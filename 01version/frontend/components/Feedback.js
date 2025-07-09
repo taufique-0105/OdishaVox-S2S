@@ -10,12 +10,10 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../context/ThemeContext";
 import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
 
 const Feedback = () => {
-  const { isDarkTheme } = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,7 +22,6 @@ const Feedback = () => {
   });
   const [errors, setErrors] = useState({});
   const navigation = useNavigation();
-  const backButtonIconColor = isDarkTheme ? "#fff" : "#000";
 
   const handleFieldFocus = async () => {
     try {
@@ -77,10 +74,12 @@ const Feedback = () => {
 
   const handleSubmit = async () => {
     const host = process.env.EXPO_PUBLIC_URL;
-    // const URI = new URL("/api/v1/feedback/submit", host).toString();
-    const URI = `${host}/api/v1/feedback/submit`; // Replace with your actual API URL
+    const URI = `${host}/api/v1/feedback/submit`;
     if (!URI) {
-      Alert.alert("Error", "API URL is not defined. Please check your configuration.", URI);
+      Alert.alert(
+        "Error",
+        "API URL is not defined. Please check your configuration."
+      );
       return;
     }
     try {
@@ -91,7 +90,8 @@ const Feedback = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "user-agent": "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+            "user-agent":
+              "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
           },
           body: JSON.stringify(formData),
         });
@@ -148,36 +148,12 @@ const Feedback = () => {
           <Ionicons
             name={i <= formData.rating ? "star" : "star-outline"}
             size={32}
-            color={
-              i <= formData.rating ? "#FFD700" : isDarkTheme ? "#666" : "#ccc"
-            }
+            color={i <= formData.rating ? "#FFD700" : "#ccc"}
           />
         </TouchableOpacity>
       );
     }
     return stars;
-  };
-
-  const dynamicStyles = {
-    container: {
-      backgroundColor: isDarkTheme ? "#121212" : "#f5f5f5",
-    },
-    card: {
-      backgroundColor: isDarkTheme ? "#1E1E1E" : "#fff",
-    },
-    text: {
-      color: isDarkTheme ? "#fff" : "#333",
-    },
-    input: {
-      color: isDarkTheme ? "#fff" : "#333",
-      borderColor: isDarkTheme ? "#444" : "#ddd",
-    },
-    label: {
-      color: isDarkTheme ? "#aaa" : "#666",
-    },
-    error: {
-      color: "#ff4444",
-    },
   };
 
   return (
@@ -187,26 +163,22 @@ const Feedback = () => {
         onPress={() => navigation.goBack()}
         hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
       >
-        <Ionicons name="arrow-back" size={24} color={backButtonIconColor} />
+        <Ionicons name="arrow-back" size={24} color="#000" />
       </Pressable>
       <ScrollView
-        style={[styles.container, dynamicStyles.container]}
+        style={styles.container}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, dynamicStyles.card, styles.formContainer]}>
-          <Text style={[styles.title, dynamicStyles.text]}>
-            Share Your Feedback
-          </Text>
+        <View style={[styles.card, styles.formContainer]}>
+          <Text style={styles.title}>Share Your Feedback</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, dynamicStyles.label]}>
-              Your Name (Optional)
-            </Text>
+            <Text style={styles.label}>Your Name (Optional)</Text>
             <TextInput
-              style={[styles.input, dynamicStyles.input]}
+              style={styles.input}
               placeholder="John Doe"
-              placeholderTextColor={isDarkTheme ? "#555" : "#999"}
+              placeholderTextColor="#999"
               value={formData.name}
               onChangeText={(text) => handleChange("name", text)}
               onFocus={handleFieldFocus}
@@ -215,17 +187,11 @@ const Feedback = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, dynamicStyles.label]}>
-              Email (Optional)
-            </Text>
+            <Text style={styles.label}>Email (Optional)</Text>
             <TextInput
-              style={[
-                styles.input,
-                dynamicStyles.input,
-                errors.email && styles.errorInput,
-              ]}
+              style={[styles.input, errors.email && styles.errorInput]}
               placeholder="your@email.com"
-              placeholderTextColor={isDarkTheme ? "#555" : "#999"}
+              placeholderTextColor="#999"
               keyboardType="email-address"
               autoCapitalize="none"
               value={formData.email}
@@ -233,29 +199,26 @@ const Feedback = () => {
               onFocus={handleFieldFocus}
               onBlur={handleFieldBlur}
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, dynamicStyles.label]}>
-              How would you rate our app?
-            </Text>
+            <Text style={styles.label}>How would you rate our app?</Text>
             <View style={styles.ratingContainer}>{renderStarRating()}</View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, dynamicStyles.label]}>
-              Your Feedback*
-            </Text>
+            <Text style={styles.label}>Your Feedback*</Text>
             <TextInput
               style={[
                 styles.input,
                 styles.messageInput,
-                dynamicStyles.input,
                 errors.message && styles.errorInput,
               ]}
               placeholder="Tell us what you think..."
-              placeholderTextColor={isDarkTheme ? "#555" : "#999"}
+              placeholderTextColor="#999"
               multiline
               numberOfLines={4}
               value={formData.message}
@@ -285,10 +248,11 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     paddingTop: 40,
+    backgroundColor: "#f5f5f5",
   },
   backButton: {
     position: "absolute",
-    top: 20,
+    top: 25,
     left: 20,
     zIndex: 10,
   },
@@ -302,6 +266,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     padding: 20,
+    backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -316,6 +281,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 25,
     textAlign: "center",
+    color: "#333",
   },
   inputGroup: {
     marginBottom: 20,
@@ -323,12 +289,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 8,
+    color: "#666",
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+    borderColor: "#ddd",
+    color: "#333",
   },
   messageInput: {
     height: 120,

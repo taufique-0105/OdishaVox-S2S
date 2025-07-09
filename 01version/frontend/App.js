@@ -19,48 +19,48 @@ export default function App() {
   return (
     <NetworkProvider>
       <OfflineNotice />
-      <ThemeProvider>
-        <SafeAreaView style={styles.safeArea}>
-          <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-          <View style={styles.appContainer}>
-            <NavigationContainer>
-              <Header />
-              <View style={styles.contentContainer}>
-                <Stack.Navigator
-                  initialRouteName="Home"
-                  screenOptions={{
-                    headerShown: false,
-                    animation: "fade",
-                    gestureEnabled: true,
-                  }}
-                >
-                  <Stack.Screen name="Home" component={Home} />
-                  <Stack.Screen
-                    name="TTS"
-                    component={TTSPlayer}
-                    options={{ gestureDirection: "horizontal" }}
-                  />
-                  <Stack.Screen
-                    name="STT"
-                    component={STTConverter}
-                    options={{ gestureDirection: "horizontal" }}
-                  />
-                  <Stack.Screen
-                    name="Feedback"
-                    component={Feedback}
-                    options={{ presentation: "modal" }}
-                  />
-                  <Stack.Screen
-                    name="STS"
-                    component={STSConverter}
-                    options={{ gestureDirection: "vertical" }}
-                  />
-                </Stack.Navigator>
-              </View>
-            </NavigationContainer>
-          </View>
-        </SafeAreaView>
-      </ThemeProvider>
+      {/* <ThemeProvider> */}
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={styles.appContainer}>
+          <NavigationContainer>
+            <Header />
+            <View style={styles.contentContainer}>
+              <Stack.Navigator
+                initialRouteName="Home"
+                screenOptions={{
+                  headerShown: false,
+                  animation: "fade",
+                  gestureEnabled: true,
+                }}
+              >
+                <Stack.Screen name="Home" component={Home} />
+                <Stack.Screen
+                  name="TTS"
+                  component={TTSPlayer}
+                  options={{ gestureDirection: "horizontal" }}
+                />
+                <Stack.Screen
+                  name="STT"
+                  component={STTConverter}
+                  options={{ gestureDirection: "horizontal" }}
+                />
+                <Stack.Screen
+                  name="Feedback"
+                  component={Feedback}
+                  options={{ presentation: "modal" }}
+                />
+                <Stack.Screen
+                  name="STS"
+                  component={STSConverter}
+                  options={{ gestureDirection: "vertical" }}
+                />
+              </Stack.Navigator>
+            </View>
+          </NavigationContainer>
+        </View>
+      </SafeAreaView>
+      {/* </ThemeProvider> */}
     </NetworkProvider>
   );
 }
