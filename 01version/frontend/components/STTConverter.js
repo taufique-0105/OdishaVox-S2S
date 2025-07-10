@@ -215,7 +215,7 @@ const STTConverter = () => {
   return (
     <View style={styles.container}>
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <MaterialIcons name="arrow-back" size={20} color="#000" />
+        <MaterialIcons name="arrow-back" size={30} color="#000" />
       </Pressable>
       <Text style={styles.title}>Speech to Text Converter</Text>
       <View style={styles.chatContainer}>

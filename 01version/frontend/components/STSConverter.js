@@ -311,7 +311,7 @@ const STSConverter = () => {
   return (
     <View style={styles.container}>
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={20} color="#000" />
+        <Ionicons name="arrow-back" size={30} color="#000" />
       </Pressable>
       {hasPermission === false ? (
         <Text style={styles.errorText}>

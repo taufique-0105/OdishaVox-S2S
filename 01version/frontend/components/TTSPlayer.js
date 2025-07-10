@@ -198,6 +198,7 @@ const TTSComponent = ({ initialText = "" }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      // keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
       style={styles.container}
     >
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -365,10 +366,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#eee",
+    // marginBottom:20
+    // marginBottom: 60,
+    // paddingBottom: 60
   },
   input: {
     flex: 1,
@@ -382,6 +386,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     fontSize: 16,
     marginRight: 10,
+    // marginBottom: 10,
+    paddingBottom: 20,
+    // marginBottom: 20,
+
   },
   sendButton: {
     width: 50,
