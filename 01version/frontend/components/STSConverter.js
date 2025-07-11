@@ -1,7 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
-  ScrollView, // Changed from FlatList
+  ScrollView,
   Pressable,
   StyleSheet,
   Text,
@@ -9,193 +9,54 @@ import {
   Animated,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import {
-  AudioModule,
-  RecordingPresets,
-  useAudioPlayer,
-  useAudioRecorder,
-  useAudioPlayerStatus,
-} from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as FileSystem from "expo-file-system";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import MessageBubble from "../utils/MessageBubble"; // Import MessageBubble
-
-const WaveAnimation = () => {
-  const barHeights = [
-    useRef(new Animated.Value(5)).current,
-    useRef(new Animated.Value(5)).current,
-    useRef(new Animated.Value(5)).current,
-    useRef(new Animated.Value(5)).current,
-    useRef(new Animated.Value(5)).current,
-  ];
-
-  useEffect(() => {
-    barHeights.forEach((barHeight, index) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(index * 100),
-          Animated.timing(barHeight, {
-            toValue: 20,
-            duration: 300,
-            useNativeDriver: false,
-          }),
-          Animated.timing(barHeight, {
-            toValue: 5,
-            duration: 300,
-            useNativeDriver: false,
-          }),
-        ])
-      ).start();
-    });
-
-    return () => {
-      barHeights.forEach((barHeight) => barHeight.stopAnimation());
-    };
-  }, []);
-
-  const barStyle = {
-    width: 3,
-    backgroundColor: "white",
-    marginHorizontal: 1,
-  };
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "flex-end",
-        height: 24,
-        marginLeft: 8,
-      }}
-    >
-      {barHeights.map((height, index) => (
-        <Animated.View key={index} style={[barStyle, { height }]} />
-      ))}
-    </View>
-  );
-};
+import MessageBubble from "../utils/MessageBubble";
+import AudioRecorderButton from "../utils/AudioRecorderButton";
 
 const STSConverter = () => {
-  const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
-  const [hasPermission, setHasPermission] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigation = useNavigation();
-  const scrollViewRef = useRef(null); // Changed from flatListRef
+  const scrollViewRef = useRef(null);
 
   const player = useAudioPlayer(null);
   const playerStatus = useAudioPlayerStatus(player);
 
-  const recordingOptions = {
-    ...RecordingPresets.HIGH_QUALITY,
-    extension: ".wav",
-    outputFormat: "wav",
-    audioQuality: "high",
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 128000,
-  };
-
-  const audioRecorder = useAudioRecorder(recordingOptions);
-
-  // Renamed to match STTConverter's function name and adjusted for MessageBubble props
-
   useEffect(() => {
-    const requestPermission = async () => {
-      try {
-        const status = await AudioModule.requestRecordingPermissionsAsync();
-        setHasPermission(status.granted);
-        if (!status.granted) {
-          Alert.alert(
-            "Permission Denied",
-            "Microphone access is required for this app to work."
-          );
-        }
-      } catch (error) {
-        console.error("Permission error:", error);
-        Alert.alert("Error", "Failed to request microphone permission.");
-      }
-    };
-
-    requestPermission();
-
-    return () => {
-      if (isRecording) {
-        audioRecorder.stop();
-      }
-      if (currentlyPlaying) {
-        player.pause();
-      }
-    };
-  }, []);
-
-  const record = async () => {
-    if (isRecording) {
-      Alert.alert(
-        "Already recording",
-        "Please stop the current recording first."
-      );
-      return;
+    // Scroll to end when messages update
+    if (messages.length > 0 && scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
     }
+  }, [messages]);
 
-    try {
-      setIsLoading(false);
-      setAudioUri(null);
-
-      await audioRecorder.prepareToRecordAsync();
-      await audioRecorder.record();
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Recording error:", error);
-      Alert.alert(
-        "Recording Failed",
-        error.message || "Failed to start recording"
-      );
-    }
+  const handleRecordingComplete = (uri) => {
+    setAudioUri(uri);
+    const newMessage = {
+      id: `sent_${Date.now().toString()}`,
+      audioUri: uri,
+      type: "user",
+      content_type: "audio",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Voice message",
+      isError: false,
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  const stopRecording = async () => {
-    try {
-      await audioRecorder.stop();
-      const uri = audioRecorder.uri;
-
-      if (!uri) {
-        throw new Error("No audio file was recorded");
-      }
-
-      setAudioUri(uri);
-      setIsRecording(false);
-
-      const newMessage = {
-        id: `sent_${Date.now().toString()}`, // Added prefix for uniqueness
-        audioUri: uri, // Changed to audioUri
-        type: "user", // Changed to 'user' for consistency with STTConverter
-        content_type: "audio", // Added for MessageBubble consistency
-        timestamp: new Date().toLocaleTimeString([], {
-          // Changed to locale time string
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        text: "Voice message", // Added for MessageBubble consistency
-        isError: false,
-      };
-
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      if (scrollViewRef.current) {
-        // Changed to scrollViewRef
-        scrollViewRef.current.scrollToEnd({ animated: true });
-      }
-    } catch (error) {
-      console.error("Stop recording error:", error);
-      Alert.alert(
-        "Recording Failed",
-        error.message || "Failed to stop recording"
-      );
-    }
+  const handleRecordingStart = () => {
+    // You can add logic here if something needs to happen when recording starts,
+    // like clearing previous audioUri or reset some state
+    setAudioUri(null); // Clear previous audio when new recording starts
+    setIsLoading(false); // Ensure main component isn't stuck in loading
   };
 
   const speechToSpeech = async () => {
@@ -209,8 +70,7 @@ const STSConverter = () => {
     if (!API_URL) {
       Alert.alert(
         "Error",
-        "API URL is not defined. Please check your configuration.",
-        API_URL
+        "API URL is not defined. Please check your configuration."
       );
       return;
     }
@@ -255,24 +115,19 @@ const STSConverter = () => {
       });
 
       const newMessage = {
-        id: `received_${Date.now().toString()}`, // Added prefix for uniqueness
-        audioUri: fileUri, // Changed to audioUri
-        type: "api", // Changed to 'api' for consistency with STTConverter
-        content_type: "audio", // Added for MessageBubble consistency
+        id: `received_${Date.now().toString()}`,
+        audioUri: fileUri,
+        type: "api",
+        content_type: "audio",
         timestamp: new Date().toLocaleTimeString([], {
-          // Changed to locale time string
           hour: "2-digit",
           minute: "2-digit",
         }),
-        text: "Audio response", // Added for MessageBubble consistency
+        text: "Audio response",
         isError: false,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-      if (scrollViewRef.current) {
-        // Changed to scrollViewRef
-        scrollViewRef.current.scrollToEnd({ animated: true });
-      }
       console.log("Processed audio saved at", fileUri);
     } catch (error) {
       console.error("API Error:", error);
@@ -281,7 +136,6 @@ const STSConverter = () => {
         error.message || "Failed to process audio"
       );
       setMessages((prev) => [
-        // Add error message
         ...prev,
         {
           id: `error_${Date.now()}`,
@@ -313,90 +167,62 @@ const STSConverter = () => {
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={30} color="#000" />
       </Pressable>
-      {hasPermission === false ? (
-        <Text style={styles.errorText}>
-          Microphone permission is required for this app to work.
-        </Text>
-      ) : (
-        <>
-          <Text style={styles.title}>Speech to Speech</Text>
-          <Text style={styles.subtitle}>Record, convert, and play audio</Text>
-          <View style={styles.messagesContainer}>
-            <ScrollView
-              ref={scrollViewRef} // Changed from FlatList
-              contentContainerStyle={styles.messagesList}
-              onContentSizeChange={() =>
-                scrollViewRef.current?.scrollToEnd({ animated: true })
-              }
-            >
-              {messages.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    Welcome to Speech to Speech
-                  </Text>
-                  <Text style={styles.emptySubText}>
-                    Record your voice, and we’ll convert it to another speech.
-                  </Text>
-                  <Text style={styles.emptySubText}>
-                    Start by pressing the microphone button below.
-                  </Text>
-                </View>
-              ) : (
-                messages.map((item) => (
-                  <MessageBubble
-                    key={item.id}
-                    message={item}
-                    isPlaying={currentlyPlaying === item.audioUri && isPlaying}
-                    // Pass WaveAnimation only if playing this specific audio
-                    WaveAnimationComponent={
-                      currentlyPlaying === item.audioUri && isPlaying
-                        ? WaveAnimation
-                        : null
-                    }
-                  />
-                ))
-              )}
-            </ScrollView>
-          </View>
-          <View style={styles.mainButtonContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.recordButton,
-                isRecording && styles.recordingButton,
-                pressed && styles.buttonPressed,
-                hasPermission === false && styles.disabledButton,
-              ]}
-              onPress={isRecording ? stopRecording : record}
-              disabled={hasPermission === false}
-            >
-              <Ionicons
-                name={isRecording ? "stop" : "mic"}
-                size={32}
-                color="white"
-              />
-              <Text style={styles.recordButtonText}>
-                {isRecording ? "Stop Recording" : "Start Recording"}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.actionButton,
-                styles.sendButton,
-                (!audioUri || isRecording) && styles.disabledButton,
-                pressed && styles.buttonPressed,
-              ]}
-              onPress={speechToSpeech}
-              disabled={!audioUri || isRecording || isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Ionicons name="send" size={24} color="white" />
-              )}
-            </Pressable>
-          </View>
-        </>
-      )}
+      {/* hasPermission check is now handled internally by AudioRecorderButton */}
+      <>
+        <Text style={styles.title}>Speech to Speech</Text>
+        <Text style={styles.subtitle}>Record, convert, and play audio</Text>
+        <View style={styles.messagesContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.messagesList}
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
+          >
+            {messages.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Welcome to Speech to Speech</Text>
+                <Text style={styles.emptySubText}>
+                  Record your voice, and we’ll convert it to another speech.
+                </Text>
+                <Text style={styles.emptySubText}>
+                  Start by pressing the microphone button below.
+                </Text>
+              </View>
+            ) : (
+              messages.map((item) => (
+                <MessageBubble
+                  key={item.id}
+                  message={item}
+                  isPlaying={currentlyPlaying === item.audioUri && isPlaying}
+                />
+              ))
+            )}
+          </ScrollView>
+        </View>
+        <View style={styles.mainButtonContainer}>
+          <AudioRecorderButton
+            onRecordingComplete={handleRecordingComplete}
+            onRecordingStart={handleRecordingStart}
+          />
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.sendButton,
+              (!audioUri || isLoading) && styles.disabledButton, // Disable if no audio or conversion is loading
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={speechToSpeech}
+            disabled={!audioUri || isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Ionicons name="send" size={24} color="white" />
+            )}
+          </Pressable>
+        </View>
+      </>
     </View>
   );
 };
@@ -444,29 +270,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flexDirection: "row",
     justifyContent: "space-evenly",
-  },
-  recordButton: {
-    backgroundColor: "#4263eb",
-    paddingVertical: 20,
-    paddingHorizontal: 30,
-    borderRadius: 50,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  recordingButton: {
-    backgroundColor: "#f03e3e",
-  },
-  recordButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
+    gap: 10, // Added gap for spacing between buttons
   },
   actionButton: {
     flex: 1,

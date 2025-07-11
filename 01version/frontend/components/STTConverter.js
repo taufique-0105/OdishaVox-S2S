@@ -9,68 +9,56 @@ import {
   ScrollView,
 } from "react-native";
 import {
-  useAudioRecorder,
-  RecordingOptions,
-  AudioModule,
-  RecordingPresets,
   useAudioPlayer,
   useAudioPlayerStatus,
-} from "expo-audio";
+} from "expo-audio"; // Removed useAudioRecorder, RecordingOptions, AudioModule, RecordingPresets
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble"; // Assuming MessageBubble is in '../utils/MessageBubble'
+import AudioRecorderButton from "../utils/AudioRecorderButton";
+// import AudioRecorderButton from "./AudioRecorderButton"; // Import the new AudioRecorderButton component
 
 const STTConverter = () => {
   const scrollViewRef = useRef();
   const navigation = useNavigation();
 
-  const recordingOptions = {
-    ...RecordingPresets.HIGH_QUALITY,
-    extension: ".wav",
-    outputFormat: "wav",
-    audioQuality: "high",
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 128000,
-  };
-
-  const audioRecorder = useAudioRecorder(recordingOptions);
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioUri, setAudioUri] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Removed isRecording and audioUri (from recorder) as they are now managed by AudioRecorderButton
+  const [isLoading, setIsLoading] = useState(false); // For STT API call loading
   const [messages, setMessages] = useState([]);
   const [playingMessageId, setPlayingMessageId] = useState(null);
-  const [currentAudioUri, setCurrentAudioUri] = useState(null);
+  const [currentAudioUri, setCurrentAudioUri] = useState(null); // For audio playback
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // State to hold the URI of the last recorded audio, passed from AudioRecorderButton
+  const [recordedAudioForSTT, setRecordedAudioForSTT] = useState(null);
 
   const player = useAudioPlayer();
   const playerStatus = useAudioPlayerStatus(player);
 
-  const record = async () => {
-    try {
-      setIsPlaying(false);
-      setAudioUri(null);
-      setIsLoading(false);
-      player.pause();
-      await audioRecorder.prepareToRecordAsync();
-      audioRecorder.record();
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Recording error:", error);
-      Alert.alert("Error", "Failed to start recording");
-    }
+  // This function will be called by AudioRecorderButton when a recording is complete
+  const handleRecordingComplete = (uri) => {
+    setRecordedAudioForSTT(uri); // Store the URI for the STT conversion
+    const audioMessage = {
+      id: `audio_${Date.now()}`,
+      audioUri: uri,
+      type: "user",
+      content_type: "audio",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: "Voice message",
+      isError: false,
+    };
+    setMessages((prev) => [...prev, audioMessage]);
   };
 
-  const stopRecording = async () => {
-    try {
-      await audioRecorder.stop();
-      setAudioUri(audioRecorder.uri);
-      console.log("Recording stopped, audio URI:", audioRecorder.uri);
-      setIsRecording(false);
-    } catch (error) {
-      console.error("Stop recording error:", error);
-      Alert.alert("Error", "Failed to stop recording");
-    }
+  // This function can be used to reset state when a new recording starts
+  const handleRecordingStart = () => {
+    setRecordedAudioForSTT(null); // Clear previous recorded audio when a new one starts
+    setIsLoading(false); // Ensure STT loading is reset
+    player.pause(); // Pause any currently playing audio
+    setPlayingMessageId(null);
   };
 
   const playMessageAudio = async (messageId, messageAudioUri) => {
@@ -95,27 +83,17 @@ const STTConverter = () => {
     }
   };
 
-  const speechToText = async (uri) => {
-    if (!uri) {
-      Alert.alert("Error", "No audio recording available");
+  const speechToText = async () => {
+    if (!recordedAudioForSTT) {
+      Alert.alert("Error", "No audio recording available to convert.");
       return;
     }
     try {
-      setIsLoading(true);
-      const audioMessage = {
-        id: `audio_${Date.now()}`,
-        audioUri: uri,
-        type: "user", // Changed from isUser: true
-        content_type: "audio", // Changed from isAudio: true
-        timestamp: new Date().toLocaleTimeString(),
-        text: "Voice message", // Added for MessageBubble consistency
-        isError: false,
-      };
-      setMessages((prev) => [...prev, audioMessage]);
+      setIsLoading(true); // Set loading for the STT API call
 
       const formData = new FormData();
       formData.append("audio", {
-        uri: uri,
+        uri: recordedAudioForSTT, // Use the URI from the recordedAudioForSTT state
         type: "audio/wav",
         name: "recording.wav",
       });
@@ -125,8 +103,7 @@ const STTConverter = () => {
       if (!apiUrl) {
         Alert.alert(
           "Error",
-          "API URL is not defined. Please check your configuration.",
-          apiUrl
+          "API URL is not defined. Please check your configuration."
         );
         return;
       }
@@ -153,9 +130,12 @@ const STTConverter = () => {
         const textMessage = {
           id: `text_${Date.now()}`,
           text: data.transcript,
-          type: "api", // Changed from isUser: false
-          content_type: "text", // Changed from isAudio: false
-          timestamp: new Date().toLocaleTimeString(),
+          type: "api",
+          content_type: "text",
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           isError: false,
         };
         setMessages((prev) => [...prev, textMessage]);
@@ -171,7 +151,10 @@ const STTConverter = () => {
           text: error.message || "Failed to convert speech to text",
           type: "api",
           content_type: "text",
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           isError: true,
         },
       ]);
@@ -181,27 +164,24 @@ const STTConverter = () => {
       );
     } finally {
       setIsLoading(false);
+      // After conversion, you might want to clear the recorded audio URI
+      // setRecordedAudioForSTT(null); // Uncomment if you want to clear the audio after sending
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const status = await AudioModule.requestRecordingPermissionsAsync();
-        if (mounted && !status.granted) {
-          Alert.alert("Permission Denied", "Microphone access is required");
-        }
-      } catch (error) {
-        console.error("Permission error:", error);
-      }
-    })();
+    // Cleanup player on unmount
     return () => {
-      mounted = false;
-      audioRecorder?.stopAndUnloadAsync?.();
       player?.stopAsync?.();
     };
   }, []);
+
+  useEffect(() => {
+    // Scroll to end when messages update
+    if (messages.length > 0 && scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!playerStatus) return;
@@ -229,9 +209,8 @@ const STTConverter = () => {
             />
             <Text style={styles.emptyTitle}>No messages yet</Text>
             <Text style={styles.emptySubtitle}>
-              Press the{" "}
-              <Text style={styles.highlightText}>microphone button</Text> below
-              to begin
+              Press the <Text style={styles.highlightText}>microphone button</Text>{" "}
+              below to begin
             </Text>
           </View>
         ) : (
@@ -254,29 +233,19 @@ const STTConverter = () => {
         )}
       </View>
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.recordButton,
-            isRecording && styles.recordingActive,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={isRecording ? stopRecording : record}
-          disabled={isLoading}
-        >
-          <MaterialIcons
-            name={isRecording ? "stop" : "mic"}
-            size={24}
-            color="#fff"
-          />
-        </Pressable>
+        {/* Use the AudioRecorderButton component */}
+        <AudioRecorderButton
+          onRecordingComplete={handleRecordingComplete}
+          onRecordingStart={handleRecordingStart}
+        />
         <Pressable
           style={({ pressed }) => [
             styles.actionButton,
-            (!audioUri || isLoading) && styles.disabledButton,
+            (!recordedAudioForSTT || isLoading) && styles.disabledButton, // Disable if no recorded audio or STT is loading
             pressed && styles.buttonPressed,
           ]}
-          onPress={() => speechToText(audioUri)}
-          disabled={isPlaying || isRecording}
+          onPress={speechToText}
+          disabled={!recordedAudioForSTT || isLoading || isPlaying} // Disable if no audio, STT loading, or audio is playing
         >
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -353,18 +322,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
   },
-  recordButton: {
-    backgroundColor: "#6200ee",
-    width: 100,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-  },
-  recordingActive: {
-    backgroundColor: "#d32f2f",
-  },
+  // Removed recordButton and recordingActive styles as they are now in AudioRecorderButton
   actionButton: {
     width: 70,
     height: 70,
