@@ -25,8 +25,10 @@
     "install": "^0.13.0",
     "react": "19.0.0",
     "react-native": "0.79.3",
+    "react-native-keyboard-controller": "^1.17.5",
     "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.1"
+    "react-native-screens": "~4.11.1",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

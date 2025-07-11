@@ -30,6 +30,7 @@
       "bundleIdentifier": "com.taufique0105.OdishaVox"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"

@@ -13,9 +13,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Keyboard,
 } from "react-native";
 import * as FileSystem from "expo-file-system";
-import { useAudioPlayer } from "expo-audio";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as Network from "expo-network";
@@ -29,10 +29,10 @@ const TTSComponent = ({ initialText = "" }) => {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [messages, setMessages] = useState([]);
   const [networkStatus, setNetworkStatus] = useState(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const flatListRef = useRef(null);
+  const textInputRef = useRef(null); // Added ref for TextInput
   const navigation = useNavigation();
-
-  // const player = useAudioPlayer(audioUri);
 
   const languages = [
     { code: "en-IN", name: "English (India)" },
@@ -50,6 +50,19 @@ const TTSComponent = ({ initialText = "" }) => {
 
   useEffect(() => {
     checkNetworkStatus();
+    const showSubscription = Keyboard.addListener(
+      "keyboardDidShow",
+      handleKeyboardShow
+    );
+    const hideSubscription = Keyboard.addListener(
+      "keyboardDidHide",
+      handleKeyboardHide
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -71,6 +84,14 @@ const TTSComponent = ({ initialText = "" }) => {
     } catch (error) {
       Alert.alert("Network Error", "Unable to check network status");
     }
+  };
+
+  const handleKeyboardShow = () => {
+    setIsKeyboardVisible(true);
+  };
+
+  const handleKeyboardHide = () => {
+    setIsKeyboardVisible(false);
   };
 
   const handleSubmit = () => {
@@ -172,20 +193,6 @@ const TTSComponent = ({ initialText = "" }) => {
     }
   };
 
-  // const handlePlay = async (uri) => {
-  //   if (!uri) {
-  //     Alert.alert("Playback Error", "No audio file to play");
-  //     return;
-  //   }
-
-  //   try {
-  //     player.replace(uri);
-  //     await player.play();
-  //   } catch (error) {
-  //     Alert.alert("Playback Error", error.message);
-  //   }
-  // };
-
   const handleLanguageSelect = (languageCode) => {
     setSelectedLanguage(languageCode);
     setShowLanguageModal(false);
@@ -198,13 +205,12 @@ const TTSComponent = ({ initialText = "" }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      // keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 20}
       style={styles.container}
     >
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
         <MaterialIcons name="arrow-back" size={20} color="#000" />
       </Pressable>
-
       <View style={styles.mainContent}>
         <Text style={styles.title}>Text-to-Speech Converter</Text>
 
@@ -219,11 +225,10 @@ const TTSComponent = ({ initialText = "" }) => {
         </TouchableOpacity>
 
         <View style={styles.displayContainer}>
-          {messages.length === 0 ? (
+          {messages.length == 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {" "}
-                Enter text below to convert it to speech{" "}
+                Enter text below to convert it to speech
               </Text>
             </View>
           ) : (
@@ -279,9 +284,27 @@ const TTSComponent = ({ initialText = "" }) => {
           </View>
         </Modal>
       </View>
-
       <View style={styles.inputWrapper}>
+        <TouchableOpacity
+          style={styles.keyboardButton}
+          onPress={() => {
+            if (isKeyboardVisible) {
+              Keyboard.dismiss();
+            } else {
+              textInputRef.current?.focus();
+            }
+          }}
+        >
+          <MaterialIcons
+            name={
+              isKeyboardVisible ? "keyboard-arrow-down" : "keyboard-arrow-up"
+            }
+            size={30}
+            color="#3498db"
+          />
+        </TouchableOpacity>
         <TextInput
+          ref={textInputRef}
           style={styles.input}
           placeholder="Type or paste your text here..."
           placeholderTextColor="#888"
@@ -370,9 +393,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#eee",
-    // marginBottom:20
-    // marginBottom: 60,
-    // paddingBottom: 60
   },
   input: {
     flex: 1,
@@ -386,10 +406,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     fontSize: 16,
     marginRight: 10,
-    // marginBottom: 10,
     paddingBottom: 20,
-    // marginBottom: 20,
-
   },
   sendButton: {
     width: 50,
@@ -398,6 +415,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#3498db",
     alignItems: "center",
     justifyContent: "center",
+  },
+  keyboardButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
   },
   buttonDisabled: {
     backgroundColor: "#95a5a6",
