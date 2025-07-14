@@ -12,7 +12,7 @@ export function getTextToSpeech(req, res) {
 
 export async function postTextToSpeech(req, res) {
   try {
-    const { text, target_language_code } = req.body;
+    const { text, target_language_code, speaker } = req.body;
 
     // Validate required fields
     if (!text || !target_language_code) {
@@ -26,7 +26,9 @@ export async function postTextToSpeech(req, res) {
     
     // 1. Basic usage:
     const result = await convertTextToSpeech(text, { 
-      targetLanguageCode: target_language_code 
+      target_language_code: target_language_code,
+      model: 'bulbul:v2', // Default model
+      speaker: speaker // Default speaker
     });
     
     // 2. With additional options (if API supports them):
