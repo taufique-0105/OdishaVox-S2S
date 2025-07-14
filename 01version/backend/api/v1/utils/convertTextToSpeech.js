@@ -5,15 +5,16 @@ const SARVAM_TTS_API_URL = 'https://api.sarvam.ai/text-to-speech';
  * Converts text to speech using Sarvam AI API
  * @param {string} text - Text to convert to speech
  * @param {Object} options - Optional parameters
- * @param {string} options.targetLanguageCode - Target language code (required)
+ * @param {string} options.target_language_code - Target language code (required)
  * @param {string} options.model - model type (default bulbul:v2 , bulbul:v1)
+ * @param {string} options.speaker - Speaker name (optional, default is 'abhilash' in our case)
  * @returns {Promise<Object>} - API response data with audios array
  * @throws {Error} - If conversion fails
  */
 export const convertTextToSpeech = async (text, options = {}) => {
-  const { targetLanguageCode,
+  const { target_language_code,
 		model='bulbul:v2',
-//		...additionalOptions
+    speaker = speaker || 'abhilash'  // Default speaker
 	} = options;
 
   // Validate required parameters
@@ -21,7 +22,7 @@ export const convertTextToSpeech = async (text, options = {}) => {
     throw new Error('Text is required for text-to-speech conversion');
   }
 
-  if (!targetLanguageCode) {
+  if (!target_language_code) {
     throw new Error('Target language code is required');
   }
 
@@ -30,13 +31,14 @@ export const convertTextToSpeech = async (text, options = {}) => {
   }
 
   console.log("Converting text to speech:", text.substring(0, 100) + "...");
-  console.log("Target language:", targetLanguageCode);
+  console.log("Target language:", target_language_code);
 
   // Prepare request payload
   const requestBody = {
     text,
-    target_language_code: targetLanguageCode,
-		model: model,
+    target_language_code,
+    speaker,
+		model,
 //    ...additionalOptions // Allow for future API parameters
   };
 
