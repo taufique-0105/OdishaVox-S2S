@@ -7,8 +7,6 @@ import {
   Alert,
   Text,
   TouchableOpacity,
-  Modal,
-  TouchableWithoutFeedback,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -20,21 +18,35 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as Network from "expo-network";
 import MessageBubble from "../utils/MessageBubble";
+import LanguageSelector from "../utils/LanguageSelector";
+import SpeakerSelector from "../utils/SpeakerSelector";
 
 const TTSComponent = ({ initialText = "" }) => {
   const [text, setText] = useState(initialText);
   const [loading, setLoading] = useState(false);
-  const [audioUri, setAudioUri] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState("en-IN");
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [messages, setMessages] = useState([]);
   const [networkStatus, setNetworkStatus] = useState(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // States for Source Language
+  const [sourceLanguage, setSourceLanguage] = useState("auto"); // Default source language
+  const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
+
+  // States for Destination Language
+  const [destinationLanguage, setDestinationLanguage] = useState("od-IN"); // Default destination language
+  const [showDestinationLanguageModal, setShowDestinationLanguageModal] =
+    useState(false);
+
+  // States for Speaker Selection
+  const [selectedSpeaker, setSelectedSpeaker] = useState("manisha"); // State for selected speaker
+  const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
+
   const flatListRef = useRef(null);
-  const textInputRef = useRef(null); // Added ref for TextInput
+  const textInputRef = useRef(null);
   const navigation = useNavigation();
 
-  const languages = [
+  // Define languages locally for use in getLanguageName for message display
+  const allLanguages = [
     { code: "en-IN", name: "English (India)" },
     { code: "od-IN", name: "Odia" },
     { code: "hi-IN", name: "Hindi" },
@@ -47,6 +59,10 @@ const TTSComponent = ({ initialText = "" }) => {
     { code: "mr-IN", name: "Marathi" },
     { code: "pa-IN", name: "Punjabi" },
   ];
+
+  const getLanguageName = (code) => {
+    return allLanguages.find((l) => l.code === code)?.name || "";
+  };
 
   useEffect(() => {
     checkNetworkStatus();
@@ -144,7 +160,9 @@ const TTSComponent = ({ initialText = "" }) => {
         },
         body: JSON.stringify({
           text: text.trim(),
-          target_language_code: selectedLanguage,
+          source_language_code: sourceLanguage, // Use sourceLanguage
+          target_language_code: destinationLanguage, // Use destinationLanguage
+          speaker: selectedSpeaker, // Uncomment if you implement SpeakerSelector
         }),
       });
 
@@ -164,12 +182,13 @@ const TTSComponent = ({ initialText = "" }) => {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      setAudioUri(fileUri);
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
-          text: `Audio generated in ${getLanguageName(selectedLanguage)}`,
+          text: `Audio generated from ${getLanguageName(
+            sourceLanguage
+          )} to ${getLanguageName(destinationLanguage)}`, // Update message text
           type: "api",
           content_type: "audio",
           audioUri: fileUri,
@@ -193,15 +212,6 @@ const TTSComponent = ({ initialText = "" }) => {
     }
   };
 
-  const handleLanguageSelect = (languageCode) => {
-    setSelectedLanguage(languageCode);
-    setShowLanguageModal(false);
-  };
-
-  const getLanguageName = (code) => {
-    return languages.find((l) => l.code === code)?.name || "Select Language";
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -214,21 +224,66 @@ const TTSComponent = ({ initialText = "" }) => {
       <View style={styles.mainContent}>
         <Text style={styles.title}>Text-to-Speech Converter</Text>
 
-        <TouchableOpacity
-          style={styles.languageSelector}
-          onPress={() => setShowLanguageModal(true)}
-        >
-          <Text style={styles.languageSelectorText}>
-            {getLanguageName(selectedLanguage)}
-          </Text>
-          <MaterialIcons name="arrow-drop-down" size={24} color="#2c3e50" />
-        </TouchableOpacity>
+        <View style={styles.languageSelectorsContainer}>
+          {/* Source Language Selector */}
+          <LanguageSelector
+            label="Source Language"
+            selectedLanguage={sourceLanguage}
+            onSelectLanguage={(lang) => {
+              setSourceLanguage(lang);
+              setShowSourceLanguageModal(false); // Close modal on selection
+            }}
+            showLanguageModal={showSourceLanguageModal}
+            setShowLanguageModal={setShowSourceLanguageModal}
+          />
+
+          <TouchableOpacity>
+            <MaterialIcons
+              name="swap-horiz"
+              size={30}
+              color="#3498db"
+              onPress={() => {
+                const temp = sourceLanguage;
+                setSourceLanguage(destinationLanguage);
+                setDestinationLanguage(temp);
+              }}
+            />
+          </TouchableOpacity>
+
+          {/* Destination Language Selector */}
+          <LanguageSelector
+            label="Destination Language"
+            selectedLanguage={destinationLanguage}
+            onSelectLanguage={(lang) => {
+              setDestinationLanguage(lang);
+              setShowDestinationLanguageModal(false); // Close modal on selection
+            }}
+            showLanguageModal={showDestinationLanguageModal}
+            setShowLanguageModal={setShowDestinationLanguageModal}
+          />
+        </View>
+
+        <View>
+        {/* Source Speaker Selector */}
+        <SpeakerSelector
+          label="Speaker"
+          selectedSpeaker={selectedSpeaker}
+          onSelectSpeaker={(speakerCode) => {
+            setSelectedSpeaker(speakerCode);
+          }}
+          showSpeakerModal={showSourceSpeakerModal}
+          setShowSpeakerModal={setShowSourceSpeakerModal}
+        />
+
+        </View>
+
+        {/* <SpeakerSelector /> */}
 
         <View style={styles.displayContainer}>
-          {messages.length == 0 ? (
+          {messages.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Enter text below to convert it to speech
+                Enter text below to convert it to speech \n
               </Text>
             </View>
           ) : (
@@ -242,47 +297,6 @@ const TTSComponent = ({ initialText = "" }) => {
             />
           )}
         </View>
-
-        <Modal
-          visible={showLanguageModal}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowLanguageModal(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowLanguageModal(false)}>
-            <View style={styles.modalOverlay} />
-          </TouchableWithoutFeedback>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Language</Text>
-            <FlatList
-              data={languages}
-              keyExtractor={(item) => item.code}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.languageItem,
-                    selectedLanguage === item.code &&
-                      styles.selectedLanguageItem,
-                  ]}
-                  onPress={() => handleLanguageSelect(item.code)}
-                >
-                  <Text
-                    style={[
-                      styles.languageItemText,
-                      selectedLanguage === item.code &&
-                        styles.selectedLanguageItemText,
-                    ]}
-                  >
-                    {item.name}
-                  </Text>
-                  {selectedLanguage === item.code && (
-                    <MaterialIcons name="check" size={20} color="#3498db" />
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </Modal>
       </View>
       <View style={styles.inputWrapper}>
         <TouchableOpacity
@@ -352,20 +366,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  languageSelector: {
+  languageSelectorsContainer: {
+    marginBottom: 15, // Space between selectors and display area
     flexDirection: "row",
+    justifyContent: "space-evenly",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginBottom: 15,
-  },
-  languageSelectorText: {
-    fontSize: 16,
-    color: "#2c3e50",
   },
   displayContainer: {
     flex: 1,
@@ -427,45 +432,6 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: "#95a5a6",
     opacity: 0.7,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 30,
-    maxHeight: "60%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  languageItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  selectedLanguageItem: {
-    backgroundColor: "#f5f5f5",
-  },
-  languageItemText: {
-    fontSize: 16,
-    color: "#2c3e50",
-  },
-  selectedLanguageItemText: {
-    fontWeight: "bold",
-    color: "#3498db",
   },
 });
 
