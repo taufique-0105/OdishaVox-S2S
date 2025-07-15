@@ -1,3 +1,5 @@
+import { translateText } from "./translateText.js";
+
 const API_SECRET = process.env.API_KEY;
 const SARVAM_TTS_API_URL = 'https://api.sarvam.ai/text-to-speech';
 
@@ -14,7 +16,8 @@ const SARVAM_TTS_API_URL = 'https://api.sarvam.ai/text-to-speech';
 export const convertTextToSpeech = async (text, options = {}) => {
   const { target_language_code,
 		model='bulbul:v2',
-    speaker = speaker || 'abhilash'  // Default speaker
+    speaker = speaker || 'abhilash',  // Default speaker
+    source_language_code
 	} = options;
 
   // Validate required parameters
@@ -28,6 +31,26 @@ export const convertTextToSpeech = async (text, options = {}) => {
 
   if (!API_SECRET) {
     throw new Error('API_SECRET is not configured');
+  }
+
+  const translatedText = () => {
+    try {
+      console.log(text, target_language_code);
+      return translateText(text, target_language_code);
+    } catch (error) {
+      console.error("Error in text translation:", error);
+      throw error;
+    }
+  }
+
+  console.log("Translating text before TTS conversion...");
+  const translated = await translatedText();
+
+  text = translated.translation || text; // Use translated text if available
+
+  console.log("Translated text:", text.substring(0, 100) + "...");
+  if (!text) {
+    throw new Error("Translation failed or returned empty text");
   }
 
   console.log("Converting text to speech:", text.substring(0, 100) + "...");
