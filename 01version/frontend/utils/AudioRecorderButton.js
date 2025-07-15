@@ -8,28 +8,69 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { AudioModule, RecordingPresets, useAudioRecorder } from "expo-audio";
-import * as FileSystem from "expo-file-system"; // Keep this if you need file system access within the button for some reason, otherwise can remove
+import {
+  AudioModule,
+  AudioQuality,
+  IOSOutputFormat,
+  RecordingPresets,
+  useAudioRecorder,
+} from "expo-audio";
+import * as FileSystem from "expo-file-system";
 
 const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // For internal button loading, e.g., during permission request
+  const [isLoading, setIsLoading] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
 
   const recordingOptions = {
     ...RecordingPresets.HIGH_QUALITY,
-    extension: ".wav",
-    outputFormat: "wav",
-    audioQuality: "high",
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 128000,
+    extension: ".m4a",
+    ios: {
+      outputFormat: IOSOutputFormat.MPEG4AAC,
+    },
+    android: {
+      outputFormat: "mpeg4",
+      audioEncoder: "aac",
+    },
+    web: {
+      mimeType: "audio/webm",
+      bitsPerSecond: 128000,
+    },
   };
 
   const audioRecorder = useAudioRecorder(recordingOptions);
 
   useEffect(() => {
-    const requestPermission = async () => {
+    // Update recording duration
+    let interval;
+    if (isRecording) {
+      interval = setInterval(async () => {
+        const status = await audioRecorder.getStatusAsync();
+        if (status.isRecording) {
+          setRecordingDuration(Math.floor(status.durationMillis / 1000));
+        }
+      }, 1000);
+    }
+    return () => {
+      clearInterval(interval);
+      if (isRecording) {
+        audioRecorder.stop();
+        setIsRecording(false);
+      }
+    };
+  }, [isRecording]);
+
+  const record = async () => {
+    if (isRecording) {
+      Alert.alert(
+        "Already recording",
+        "Please stop the current recording first."
+      );
+      return;
+    }
+
+    if (hasPermission === null) {
       try {
         setIsLoading(true);
         const status = await AudioModule.requestRecordingPermissionsAsync();
@@ -39,33 +80,15 @@ const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
             "Permission Denied",
             "Microphone access is required for recording audio."
           );
+          return;
         }
       } catch (error) {
         console.error("Permission error:", error);
         Alert.alert("Error", "Failed to request microphone permission.");
+        return;
       } finally {
         setIsLoading(false);
       }
-    };
-
-    requestPermission();
-
-    return () => {
-      // Ensure recording stops if component unmounts while recording
-      if (isRecording) {
-        audioRecorder.stop();
-        setIsRecording(false);
-      }
-    };
-  }, [isRecording]); // Re-run effect if isRecording changes to handle cleanup
-
-  const record = async () => {
-    if (isRecording) {
-      Alert.alert(
-        "Already recording",
-        "Please stop the current recording first."
-      );
-      return;
     }
 
     if (hasPermission === false) {
@@ -77,13 +100,9 @@ const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
     }
 
     try {
-      // Notify parent component that recording has started (optional)
-      if (onRecordingStart) {
-        onRecordingStart();
-      }
-      setIsLoading(true); // Indicate busy state for the button
       await audioRecorder.prepareToRecordAsync();
-      await audioRecorder.record();
+      console.log("Recording started");
+      audioRecorder.record();
       setIsRecording(true);
     } catch (error) {
       console.error("Recording error:", error);
@@ -98,16 +117,15 @@ const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
 
   const stopRecording = async () => {
     try {
-      setIsLoading(true); // Indicate busy state for the button
+      setIsLoading(true);
       await audioRecorder.stop();
       const uri = audioRecorder.uri;
-
+      console.log("Recording stopped, file saved at:", uri);
       if (!uri) {
         throw new Error("No audio file was recorded.");
       }
 
       setIsRecording(false);
-      // Pass the recorded URI back to the parent component
       if (onRecordingComplete) {
         onRecordingComplete(uri);
       }
@@ -119,6 +137,7 @@ const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
       );
     } finally {
       setIsLoading(false);
+      setRecordingDuration(0);
     }
   };
 
@@ -150,7 +169,7 @@ const AudioRecorderButton = ({ onRecordingComplete, onRecordingStart }) => {
         {isLoading
           ? "..."
           : isRecording
-          ? "Stop Recording"
+          ? `Recording (${recordingDuration}s)`
           : "Start Recording"}
       </Text>
     </Pressable>
