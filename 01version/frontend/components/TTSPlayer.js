@@ -218,12 +218,18 @@ const TTSComponent = ({ initialText = "" }) => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 20}
       style={styles.container}
     >
-      <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <MaterialIcons name="arrow-back" size={20} color="#000" />
-      </Pressable>
       <View style={styles.mainContent}>
-        <Text style={styles.title}>Text-to-Speech Converter</Text>
-
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={26} color="#1f2937" />
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Text-to-Speech Converter</Text>
+          </View>
+        </View>
         <View style={styles.languageSelectorsContainer}>
           {/* Source Language Selector */}
           <LanguageSelector
@@ -231,12 +237,11 @@ const TTSComponent = ({ initialText = "" }) => {
             selectedLanguage={sourceLanguage}
             onSelectLanguage={(lang) => {
               setSourceLanguage(lang);
-              setShowSourceLanguageModal(false); // Close modal on selection
+              setShowSourceLanguageModal(false);
             }}
             showLanguageModal={showSourceLanguageModal}
             setShowLanguageModal={setShowSourceLanguageModal}
           />
-
           <TouchableOpacity>
             <MaterialIcons
               name="swap-horiz"
@@ -256,34 +261,29 @@ const TTSComponent = ({ initialText = "" }) => {
             selectedLanguage={destinationLanguage}
             onSelectLanguage={(lang) => {
               setDestinationLanguage(lang);
-              setShowDestinationLanguageModal(false); // Close modal on selection
+              setShowDestinationLanguageModal(false);
             }}
             showLanguageModal={showDestinationLanguageModal}
             setShowLanguageModal={setShowDestinationLanguageModal}
           />
         </View>
-
         <View>
         {/* Source Speaker Selector */}
-        <SpeakerSelector
-          label="Speaker"
-          selectedSpeaker={selectedSpeaker}
-          onSelectSpeaker={(speakerCode) => {
-            setSelectedSpeaker(speakerCode);
-          }}
-          showSpeakerModal={showSourceSpeakerModal}
-          setShowSpeakerModal={setShowSourceSpeakerModal}
-        />
-
+          <SpeakerSelector
+            label="Speaker"
+            selectedSpeaker={selectedSpeaker}
+            onSelectSpeaker={(speakerCode) => {
+              setSelectedSpeaker(speakerCode);
+            }}
+            showSpeakerModal={showSourceSpeakerModal}
+            setShowSpeakerModal={setShowSourceSpeakerModal}
+          />
         </View>
-
-        {/* <SpeakerSelector /> */}
-
         <View style={styles.displayContainer}>
           {messages.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Enter text below to convert it to speech \n
+                Enter text below to convert it to speech
               </Text>
             </View>
           ) : (
@@ -348,47 +348,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f9fa",
   },
-  backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
-  },
   mainContent: {
     flex: 1,
-    padding: 20,
-    paddingTop: 30,
+    padding: 10,
+    paddingTop: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "center", // center children horizontally
+    alignItems: "center",     // center children vertically
+    marginBottom: 6,
+  },
+  backButton: {
+    alignSelf: "center", // center itself in the header
+    justifyContent: "center",
+    padding: 8,
+    backgroundColor: "#e8ecef",
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 12,
+  },
+  titleContainer: {
+    borderRadius: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    alignItems: "center",
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#1f2937",
     textAlign: "center",
   },
   languageSelectorsContainer: {
-    marginBottom: 15, // Space between selectors and display area
+    marginBottom: 4,
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
   },
   displayContainer: {
     flex: 1,
-    backgroundColor: "#f0f2f5",
-    borderRadius: 10,
-    marginBottom: 15,
-    padding: 10,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 16,
+    marginBottom: 4,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    overflow: "hidden",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#7f8c8d",
+    fontSize: 15,
+    color: "#64748b",
     textAlign: "center",
+    lineHeight: 24,
+    fontWeight: "400",
   },
   inputWrapper: {
     flexDirection: "row",
