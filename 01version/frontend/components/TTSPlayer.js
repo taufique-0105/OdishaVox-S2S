@@ -19,7 +19,8 @@ import { useNavigation } from "@react-navigation/native";
 import * as Network from "expo-network";
 import MessageBubble from "../utils/MessageBubble";
 import LanguageSelector from "../utils/LanguageSelector";
-import SpeakerSelector from "../utils/SpeakerSelector";
+// import SpeakerSelector from "../utils/SpeakerSelector";
+import { useSpeaker } from "../context/SpeakerContext";
 
 const TTSComponent = ({ initialText = "" }) => {
   const [text, setText] = useState(initialText);
@@ -38,12 +39,15 @@ const TTSComponent = ({ initialText = "" }) => {
     useState(false);
 
   // States for Speaker Selection
-  const [selectedSpeaker, setSelectedSpeaker] = useState("manisha"); // State for selected speaker
-  const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
+  // const [selectedSpeaker, setSelectedSpeaker] = useState("manisha"); // State for selected speaker
+  // const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
 
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
   const navigation = useNavigation();
+  const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
+
+  console.log("Speaker Context:", selectedSpeaker);
 
   // Define languages locally for use in getLanguageName for message display
   const allLanguages = [
@@ -267,8 +271,8 @@ const TTSComponent = ({ initialText = "" }) => {
             setShowLanguageModal={setShowDestinationLanguageModal}
           />
         </View>
-        <View>
         {/* Source Speaker Selector */}
+        {/* <View>
           <SpeakerSelector
             label="Speaker"
             selectedSpeaker={selectedSpeaker}
@@ -278,7 +282,7 @@ const TTSComponent = ({ initialText = "" }) => {
             showSpeakerModal={showSourceSpeakerModal}
             setShowSpeakerModal={setShowSourceSpeakerModal}
           />
-        </View>
+        </View> */}
         <View style={styles.displayContainer}>
           {messages.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -356,7 +360,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "center", // center children horizontally
-    alignItems: "center",     // center children vertically
+    alignItems: "center", // center children vertically
     marginBottom: 6,
   },
   backButton: {

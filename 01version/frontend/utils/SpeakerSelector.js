@@ -18,15 +18,22 @@ const SpeakerSelector = ({
   showSpeakerModal,
   setShowSpeakerModal,
 }) => {
+
+  // These are all the available speakers
+  // const speakers = [
+  //   { code: "abhilash", name: "Abhilash", color: "#3498db" },
+  //   { code: "anushka", name: "Anushka", color: "#e74c3c" },
+  //   { code: "manisha", name: "Manisha", color: "#2ecc71" },
+  //   { code: "arya", name: "Arya", color: "#f39c12" },
+  //   { code: "hitesh", name: "Hitesh", color: "#9b59b6" },
+  //   { code: "karun", name: "Karun", color: "#1abc9c" },
+  //   { code: "vidya", name: "Vidya", color: "#d35400" },
+  // ];
+
   const speakers = [
-    { code: "abhilash", name: "Abhilash", color: "#3498db" },
-    { code: "anushka", name: "Anushka", color: "#e74c3c" },
-    { code: "manisha", name: "Manisha", color: "#2ecc71" },
-    { code: "arya", name: "Arya", color: "#f39c12" },
-    { code: "hitesh", name: "Hitesh", color: "#9b59b6" },
-    { code: "karun", name: "Karun", color: "#1abc9c" },
-    { code: "vidya", name: "Vidya", color: "#d35400" },
-  ];
+    { code: "vidya", name: 'female', color: "#d35400" },
+    { code: "abhilash", name: 'male', color: "#3498db" },
+  ]
 
   const modalTranslateY = useRef(new Animated.Value(500)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -118,7 +125,9 @@ const SpeakerSelector = ({
         </View>
         <Animated.View style={{ opacity: fadeAnim }}>
           <MaterialIcons
-            name={showSpeakerModal ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+            name={
+              showSpeakerModal ? "keyboard-arrow-up" : "keyboard-arrow-down"
+            }
             size={28}
             color="#3498db"
           />
@@ -169,7 +178,8 @@ const SpeakerSelector = ({
                     style={[
                       styles.speakerAvatar,
                       { backgroundColor: item.color },
-                      selectedSpeaker === item.code && styles.selectedSpeakerAvatar,
+                      selectedSpeaker === item.code &&
+                        styles.selectedSpeakerAvatar,
                     ]}
                   >
                     <Text style={styles.avatarText}>
@@ -180,7 +190,8 @@ const SpeakerSelector = ({
                     <Text
                       style={[
                         styles.speakerItemText,
-                        selectedSpeaker === item.code && styles.selectedSpeakerItemText,
+                        selectedSpeaker === item.code &&
+                          styles.selectedSpeakerItemText,
                       ]}
                     >
                       {item.name}
