@@ -22,13 +22,13 @@ export const translateText = async (text, targetLanguage) => {
     throw new Error("API_SECRET is not configured");
   }
 
-  console.log("Translating text:", text.substring(0, 100) + "...");
-  console.log(
-    "Source language:",
-    sourceLanguage,
-    "-> Target language:",
-    targetLanguage
-  );
+  // console.log("Translating text:", text.substring(0, 100) + "...");
+  // console.log(
+  //   "Source language:",
+  //   sourceLanguage,
+  //   "-> Target language:",
+  //   targetLanguage
+  // );
 
   // Prepare request payload
   const requestBody = {
@@ -55,7 +55,7 @@ export const translateText = async (text, targetLanguage) => {
     }
 
     const result = await response.json();
-    console.log("Translation API response received");
+    // console.log("Translation API response received");
 
     // Validate response structure
     if (!result.translated_text) {

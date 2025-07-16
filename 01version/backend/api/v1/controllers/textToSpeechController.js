@@ -1,4 +1,5 @@
 import { convertTextToSpeech } from '../utils/convertTextToSpeech.js';
+import { translateText } from '../utils/translateText.js';
 
 export function getTextToSpeech(req, res) {
   res.json({
@@ -23,9 +24,15 @@ export async function postTextToSpeech(req, res) {
 
     // Call utility function
     // You can call it in different ways:
+
+    // 1. Text transalation to destination language
+    const { translation } = await translateText(text, target_language_code);
+
+    // console.log("Translated text:", translation);
     
-    // 1. Basic usage:
-    const result = await convertTextToSpeech(text, { 
+    // 2. Convert text to speech with translated text
+    // Note: If you want to use the original text instead of translated text, you can
+    const result = await convertTextToSpeech(translation, { 
       target_language_code: target_language_code,
       model: 'bulbul:v2', // Default model
       speaker: speaker // Default speaker

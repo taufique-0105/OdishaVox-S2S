@@ -33,28 +33,28 @@ export const convertTextToSpeech = async (text, options = {}) => {
     throw new Error('API_SECRET is not configured');
   }
 
-  const translatedText = () => {
-    try {
-      console.log(text, target_language_code);
-      return translateText(text, target_language_code);
-    } catch (error) {
-      console.error("Error in text translation:", error);
-      throw error;
-    }
-  }
+  // const translatedText = () => {
+  //   try {
+  //     console.log(text, target_language_code);
+  //     return translateText(text, target_language_code);
+  //   } catch (error) {
+  //     console.error("Error in text translation:", error);
+  //     throw error;
+  //   }
+  // }
 
-  console.log("Translating text before TTS conversion...");
-  const translated = await translatedText();
+  // console.log("Translating text before TTS conversion...");
+  // const translated = await translatedText();
 
-  text = translated.translation || text; // Use translated text if available
+  // text = translated.translation || text; // Use translated text if available
 
-  console.log("Translated text:", text.substring(0, 100) + "...");
+  // console.log("Translated text:", text.substring(0, 100) + "...");
   if (!text) {
     throw new Error("Translation failed or returned empty text");
   }
 
-  console.log("Converting text to speech:", text.substring(0, 100) + "...");
-  console.log("Target language:", target_language_code);
+  // console.log("Converting text to speech:", text.substring(0, 100) + "...");
+  // console.log("Target language:", target_language_code);
 
   // Prepare request payload
   const requestBody = {
@@ -81,7 +81,7 @@ export const convertTextToSpeech = async (text, options = {}) => {
     }
 
     const ttsResult = await response.json();
-    console.log("TTS API response received");
+    // console.log("TTS API response received");
 
     // Validate response structure
     if (!ttsResult.audios || !Array.isArray(ttsResult.audios)) {
