@@ -47,7 +47,7 @@ const TTSComponent = ({ initialText = "" }) => {
   const navigation = useNavigation();
   const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
 
-  console.log("Speaker Context:", selectedSpeaker);
+  // console.log("Speaker Context:", selectedSpeaker);
 
   // Define languages locally for use in getLanguageName for message display
   const allLanguages = [

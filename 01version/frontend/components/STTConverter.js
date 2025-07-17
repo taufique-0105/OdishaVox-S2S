@@ -7,15 +7,16 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import {
-  useAudioPlayer,
-  useAudioPlayerStatus,
-} from "expo-audio"; // Removed useAudioRecorder, RecordingOptions, AudioModule, RecordingPresets
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"; // Removed useAudioRecorder, RecordingOptions, AudioModule, RecordingPresets
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble"; // Assuming MessageBubble is in '../utils/MessageBubble'
 import AudioRecorderButton from "../utils/AudioRecorderButton";
+import LanguageSelector from "../utils/LanguageSelector";
+import SpeakerSelector from "../utils/SpeakerSelector";
+import { useSpeaker } from "../context/SpeakerContext";
 // import AudioRecorderButton from "./AudioRecorderButton"; // Import the new AudioRecorderButton component
 
 const STTConverter = () => {
@@ -31,6 +32,21 @@ const STTConverter = () => {
 
   // State to hold the URI of the last recorded audio, passed from AudioRecorderButton
   const [recordedAudioForSTT, setRecordedAudioForSTT] = useState(null);
+
+  // States for Source Language
+  const [sourceLanguage, setSourceLanguage] = useState("auto");
+  const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
+
+  // States for Destination Language
+  const [destinationLanguage, setDestinationLanguage] = useState("od-IN");
+  const [showDestinationLanguageModal, setShowDestinationLanguageModal] =
+    useState(false);
+
+  // States for Speaker Selection
+  // const [selectedSpeaker, setSelectedSpeaker] = useState("manisha");
+  // const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
+
+  // const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
 
   const player = useAudioPlayer();
   const playerStatus = useAudioPlayerStatus(player);
@@ -61,28 +77,6 @@ const STTConverter = () => {
     setPlayingMessageId(null);
   };
 
-  const playMessageAudio = async (messageId, messageAudioUri) => {
-    try {
-      if (playingMessageId === messageId) {
-        await player.pause();
-        setPlayingMessageId(null);
-      } else {
-        if (isPlaying || playingMessageId) {
-          await player.pause();
-        }
-        if (currentAudioUri !== messageAudioUri) {
-          await player.replace(messageAudioUri);
-          setCurrentAudioUri(messageAudioUri);
-        }
-        await player.play();
-        setPlayingMessageId(messageId);
-      }
-    } catch (error) {
-      console.error("Message audio playback error:", error);
-      Alert.alert("Error", "Failed to play audio message");
-    }
-  };
-
   const speechToText = async () => {
     if (!recordedAudioForSTT) {
       Alert.alert("Error", "No audio recording available to convert.");
@@ -98,8 +92,11 @@ const STTConverter = () => {
         name: "recording.wav",
       });
 
+      formData.append("source_language", sourceLanguage);
+      formData.append("destination_language", destinationLanguage);
+
       const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
-      console.log("API URL:", apiUrl);
+      // console.log("API URL:", apiUrl);
       if (!apiUrl) {
         Alert.alert(
           "Error",
@@ -126,10 +123,12 @@ const STTConverter = () => {
       }
 
       const data = await response.json();
-      if (data.transcript) {
+
+      console.log(data);
+      if (data.translation) {
         const textMessage = {
           id: `text_${Date.now()}`,
-          text: data.transcript,
+          text: data.translation,
           type: "api",
           content_type: "text",
           timestamp: new Date().toLocaleTimeString([], {
@@ -194,10 +193,64 @@ const STTConverter = () => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <MaterialIcons name="arrow-back" size={30} color="#000" />
-      </Pressable>
-      <Text style={styles.title}>Speech to Text Converter</Text>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={30} color="#000" />
+        </Pressable>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Speech to Text Converter</Text>
+        </View>
+      </View>
+      <View style={styles.languageSelectorsContainer}>
+        <LanguageSelector
+          label="Source Language"
+          selectedLanguage={sourceLanguage}
+          onSelectLanguage={(lang) => {
+            setSourceLanguage(lang);
+            setShowSourceLanguageModal(false);
+          }}
+          showLanguageModal={showSourceLanguageModal}
+          setShowLanguageModal={setShowSourceLanguageModal}
+        />
+        <TouchableOpacity>
+          <MaterialIcons
+            name="swap-horiz"
+            size={30}
+            color="#3498db"
+            onPress={() => {
+              const temp = sourceLanguage;
+              setSourceLanguage(destinationLanguage);
+              setDestinationLanguage(temp);
+            }}
+          />
+        </TouchableOpacity>
+        <LanguageSelector
+          label="Destination Language"
+          selectedLanguage={destinationLanguage}
+          onSelectLanguage={(lang) => {
+            setDestinationLanguage(lang);
+            setShowDestinationLanguageModal(false);
+          }}
+          showLanguageModal={showDestinationLanguageModal}
+          setShowLanguageModal={setShowDestinationLanguageModal}
+        />
+      </View>
+
+      {/* Speaker Selector */}
+      {/* <View>
+        <SpeakerSelector
+          label="Speaker"
+          selectedSpeaker={selectedSpeaker}
+          onSelectSpeaker={(speakerCode) => {
+            setSelectedSpeaker(speakerCode);
+          }}
+          showSpeakerModal={showSourceSpeakerModal}
+          setShowSpeakerModal={setShowSourceSpeakerModal}
+        />
+      </View> */}
       <View style={styles.chatContainer}>
         {messages.length === 0 ? (
           <View style={styles.emptyStateContainer}>
@@ -209,8 +262,9 @@ const STTConverter = () => {
             />
             <Text style={styles.emptyTitle}>No messages yet</Text>
             <Text style={styles.emptySubtitle}>
-              Press the <Text style={styles.highlightText}>microphone button</Text>{" "}
-              below to begin
+              Press the{" "}
+              <Text style={styles.highlightText}>microphone button</Text> below
+              to begin
             </Text>
           </View>
         ) : (
@@ -225,7 +279,6 @@ const STTConverter = () => {
               <MessageBubble
                 key={message.id}
                 message={message}
-                playAudio={playMessageAudio}
                 isPlaying={playingMessageId === message.id}
               />
             ))}
@@ -262,13 +315,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    padding: 16,
+    padding: 6,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "center", // center children horizontally
+    alignItems: "center", // center children vertically
+    // marginBottom: 6,
   },
   backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
+    alignSelf: "center", // center itself in the header
+    justifyContent: "center",
+    padding: 8,
+    backgroundColor: "#e8ecef",
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 12,
+  },
+  titleContainer: {
+    borderRadius: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#1f2937",
+    textAlign: "center",
+  },
+  languageSelectorsContainer: {
+    marginBottom: 4,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
   },
   emptyStateContainer: {
     flex: 1,
