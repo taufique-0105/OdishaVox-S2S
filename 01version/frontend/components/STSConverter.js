@@ -78,9 +78,9 @@ const STSConverter = () => {
       return;
     }
     const host = process.env.EXPO_PUBLIC_URL;
-    const API_URL = `${host}/api/v1/sts`;
+    const URI = `${host}/api/v1/sts`;
 
-    if (!API_URL) {
+    if (!URI) {
       Alert.alert(
         "Error",
         "API URL is not defined. Please check your configuration."
@@ -102,14 +102,14 @@ const STSConverter = () => {
       formData.append("destination_language", destinationLanguage);
       formData.append("speaker", selectedSpeaker);
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(URI, {
         method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10, dev-v0.1.1)",
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 

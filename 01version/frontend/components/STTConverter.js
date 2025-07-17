@@ -92,23 +92,24 @@ const STTConverter = () => {
       formData.append("source_language", sourceLanguage);
       formData.append("destination_language", destinationLanguage);
 
-      const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
-      // console.log("API URL:", apiUrl);
-      if (!apiUrl) {
+      const host = process.env.EXPO_PUBLIC_URL;
+      const URI = `${host}/api/v1/stt`;
+      // console.log("API URL:", URI);
+      if (!URI) {
         Alert.alert(
           "Error",
           "API URL is not defined. Please check your configuration."
         );
         return;
       }
-      const response = await fetch(apiUrl, {
+      const response = await fetch(URI, {
         method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Build/17-07-2025)",
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 

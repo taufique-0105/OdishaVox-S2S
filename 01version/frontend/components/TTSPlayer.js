@@ -160,7 +160,8 @@ const TTSComponent = ({ initialText = "" }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "user-agent": "OdishaVoxApp/0.1.0",
+          "user-agent": 
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Android 10, dev-v0.1.1)",
         },
         body: JSON.stringify({
           text: text.trim(),
