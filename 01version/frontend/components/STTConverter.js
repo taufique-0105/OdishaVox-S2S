@@ -15,8 +15,6 @@ import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble"; // Assuming MessageBubble is in '../utils/MessageBubble'
 import AudioRecorderButton from "../utils/AudioRecorderButton";
 import LanguageSelector from "../utils/LanguageSelector";
-import SpeakerSelector from "../utils/SpeakerSelector";
-import { useSpeaker } from "../context/SpeakerContext";
 // import AudioRecorderButton from "./AudioRecorderButton"; // Import the new AudioRecorderButton component
 
 const STTConverter = () => {
@@ -27,14 +25,13 @@ const STTConverter = () => {
   const [isLoading, setIsLoading] = useState(false); // For STT API call loading
   const [messages, setMessages] = useState([]);
   const [playingMessageId, setPlayingMessageId] = useState(null);
-  const [currentAudioUri, setCurrentAudioUri] = useState(null); // For audio playback
   const [isPlaying, setIsPlaying] = useState(false);
 
   // State to hold the URI of the last recorded audio, passed from AudioRecorderButton
   const [recordedAudioForSTT, setRecordedAudioForSTT] = useState(null);
 
   // States for Source Language
-  const [sourceLanguage, setSourceLanguage] = useState("unknown");
+  const [sourceLanguage, setSourceLanguage] = useState("en-IN"); // Default source language
   const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
 
   // States for Destination Language
@@ -111,7 +108,7 @@ const STTConverter = () => {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 
@@ -201,7 +198,12 @@ const STTConverter = () => {
           <MaterialIcons name="arrow-back" size={30} color="#000" />
         </Pressable>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Speech to Text Converter</Text>
+          <Text style={{ fontSize: 24, fontWeight: "700", color: "#212121" }}>
+            Speech to Text Converter
+          </Text>
+          <Text style={styles.subtitle}>
+            Convert speech to text in various languages{" "}
+          </Text>
         </View>
       </View>
       <View style={styles.languageSelectorsContainer}>
@@ -319,35 +321,40 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "center", // center children horizontally
-    alignItems: "center", // center children vertically
-    // marginBottom: 6,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    marginBottom: 16,
+    // elevation: 3,
   },
+
   backButton: {
-    alignSelf: "center", // center itself in the header
+    width: 40,
+    height: 40,
+    alignItems: "center",
     justifyContent: "center",
-    padding: 8,
-    backgroundColor: "#e8ecef",
-    borderRadius: 50,
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    marginBottom: 12,
+    shadowRadius: 2,
+    elevation: 3,
   },
+
   titleContainer: {
-    borderRadius: 12,
-    paddingVertical: 5,
-    paddingHorizontal: 16,
-    marginBottom: 14,
+    flex: 1,
+    marginLeft: 15,
     alignItems: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#1f2937",
-    textAlign: "center",
+  subtitle: {
+    fontSize: 12,
+    color: "#757575",
+    marginTop: 2,
   },
   languageSelectorsContainer: {
     marginBottom: 4,

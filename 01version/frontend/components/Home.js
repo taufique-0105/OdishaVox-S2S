@@ -149,7 +149,7 @@ const Home = ({ navigation }) => {
                     >
                       <Text style={styles.buttonText}>Speech to Speech</Text>
                       <Text style={styles.buttonSubtext}>
-                        Convert Odia speech to different voice
+                        Record, convert, and play audio
                       </Text>
                     </Animated.View>
                   </LinearGradient>
@@ -181,7 +181,7 @@ const Home = ({ navigation }) => {
                     >
                       <Text style={styles.buttonText}>Text to Speech</Text>
                       <Text style={styles.buttonSubtext}>
-                        Convert Odia text to natural speech
+                        Convert speech to text in various languages
                       </Text>
                     </Animated.View>
                   </LinearGradient>
@@ -214,7 +214,7 @@ const Home = ({ navigation }) => {
                     >
                       <Text style={styles.buttonText}>Speech to Text</Text>
                       <Text style={styles.buttonSubtext}>
-                        Transcribe Odia speech to text
+                        Enter text below to convert it to speech
                       </Text>
                     </Animated.View>
                   </LinearGradient>

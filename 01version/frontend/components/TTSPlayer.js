@@ -30,7 +30,7 @@ const TTSComponent = ({ initialText = "" }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // States for Source Language
-  const [sourceLanguage, setSourceLanguage] = useState("unknown"); // Default source language
+  const [sourceLanguage, setSourceLanguage] = useState("en-IN"); // Default source language
   const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
 
   // States for Destination Language
@@ -228,10 +228,13 @@ const TTSComponent = ({ initialText = "" }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={26} color="#1f2937" />
+            <MaterialIcons name="arrow-back" size={30} color="#000000ff" />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Text-to-Speech Converter</Text>
+            <Text style={styles.subtitle}>
+              Convert text to speech in various languages
+            </Text>
           </View>
         </View>
         <View style={styles.languageSelectorsContainer}>
@@ -354,40 +357,51 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    padding: 10,
-    paddingTop: 16,
+    padding: 5,
+    paddingTop: 10,
   },
   header: {
     flexDirection: "row",
-    justifyContent: "center", // center children horizontally
-    alignItems: "center", // center children vertically
-    marginBottom: 6,
+    // justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    marginBottom: 16,
+    // elevation: 3,
   },
+
   backButton: {
-    alignSelf: "center", // center itself in the header
+    width: 40,
+    height: 40,
+    alignItems: "center",
     justifyContent: "center",
-    padding: 8,
-    backgroundColor: "#e8ecef",
-    borderRadius: 50,
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    marginBottom: 12,
+    shadowRadius: 2,
+    elevation: 3,
   },
+
   titleContainer: {
-    borderRadius: 12,
-    paddingVertical: 5,
-    paddingHorizontal: 16,
-    marginBottom: 14,
-    alignItems: "center",
+    flex: 1,
+    marginLeft: 15,
   },
+
   title: {
     fontSize: 24,
-    fontWeight: "600",
-    color: "#1f2937",
-    textAlign: "center",
+    fontWeight: "700",
+    color: "#212121",
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: "#757575",
+    marginTop: 2,
   },
   languageSelectorsContainer: {
     marginBottom: 4,

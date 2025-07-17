@@ -85,6 +85,7 @@ function MainApp() {
         <Drawer.Navigator
           initialRouteName="Main"
           screenOptions={{
+            drawerPosition: "right",
             drawerStyle: {
               backgroundColor: "#073d5c",
               width: 240,
