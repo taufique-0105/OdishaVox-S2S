@@ -13,19 +13,21 @@ export const getSpeechToSpeech = (req, res) => {
 export const postSpeechToSpeech = async (req, res) => {
   try {
     // Step 1 Speech to Text
-    const speechResult = await convertSpeechToText(req.file);
+    const speechResult = await convertSpeechToText(req.file, req.body || "unknown");
 
-    console.log("Speech to Text Result:", speechResult.language_code, speechResult.transcript);
+    // console.log("Speech to Text Result:", speechResult.language_code, speechResult.transcript);
 
-    const targetLanguage = speechResult.language_code === "en-IN" ? "od-IN" : "en-IN";
-    console.log("targetLanguage",targetLanguage)
+    // const targetLanguage = speechResult.language_code === "en-IN" ? "od-IN" : "en-IN";
+    // console.log("targetLanguage",targetLanguage)
     // Step 2 Text Translation
-    const translationResult = await translateText(speechResult.transcript, targetLanguage);
+    const translationResult = await translateText(speechResult.transcript, req.body.destination_language || "od-IN");
+
+    // console.log("Translation Result:", translationResult.sourceLanguage, translationResult.targetLanguage, translationResult.translation);
 
     // Step 3 Text to Speech
-    const ttsResult = await convertTextToSpeech(translationResult.translation, {
-      targetLanguageCode: speechResult.language_code === "en-IN" ? "od-IN" : "en-IN",
-    });
+    const ttsResult = await convertTextToSpeech(translationResult.translation, req.body);
+
+    // console.log("Text to Speech Result:", ttsResult.audios[0]);
 
     res.json({
       message: "Speech to Speech conversion successful",

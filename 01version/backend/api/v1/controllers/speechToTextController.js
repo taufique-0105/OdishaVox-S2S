@@ -1,4 +1,5 @@
 import { convertSpeechToText } from '../utils/convertSpeechToText.js'
+import { translateText } from '../utils/translateText.js';
 
 export const getSpeechToText = (req, res) => {
   res.json({
@@ -18,11 +19,14 @@ export const postSpeechToText = async (req, res) => {
     // Call utility function - options are completely optional
     // You can call it in any of these ways:
 
-    // 1. Use all defaults:
-    const result = await convertSpeechToText(req.file);
+    // console.log(req.body, req.file);
+    // 1. Convert speech to text with selected source language and default model:
+    const result = await convertSpeechToText(req.file, req.body);
 
-    // 2. Override only specific options:
-    // const result = await convertSpeechToText(req.file, { model: 'custom-model' });
+    // 2. Translating text to destination language:
+    const resultWithTranslation = await translateText(result.transcript, req.body.destination_language || 'en-IN');
+
+    console.log("Speech to Text result:", resultWithTranslation);
 
     // 3. Override multiple options:
     // const result = await convertSpeechToText(req.file, {
@@ -30,7 +34,7 @@ export const postSpeechToText = async (req, res) => {
     //   languageCode: 'en-US'
     // });
 
-    res.json(result);
+    res.json(resultWithTranslation);
   } catch (error) {
     console.error("Controller error:", error.message);
 

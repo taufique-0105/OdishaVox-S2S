@@ -1,7 +1,7 @@
 import { translateText } from "./translateText.js";
 
 const API_SECRET = process.env.API_KEY;
-const SARVAM_TTS_API_URL = 'https://api.sarvam.ai/text-to-speech';
+const SARVAM_TTS_API_URL = "https://api.sarvam.ai/text-to-speech";
 
 /**
  * Converts text to speech using Sarvam AI API
@@ -14,23 +14,27 @@ const SARVAM_TTS_API_URL = 'https://api.sarvam.ai/text-to-speech';
  * @throws {Error} - If conversion fails
  */
 export const convertTextToSpeech = async (text, options = {}) => {
-  const { target_language_code,
-		model='bulbul:v2',
-    speaker = speaker || 'abhilash',  // Default speaker
-    source_language_code
-	} = options;
+  // console.log("options are: ", options);
+  const {
+    model = "bulbul:v2",
+    speaker = speaker || "abhilash", // Default speaker
+  } = options;
+
+  const target_language_code = options.destination_language || options.target_language_code;
+
+  // console.log("Target language code:", target_language_code);
 
   // Validate required parameters
   if (!text) {
-    throw new Error('Text is required for text-to-speech conversion');
+    throw new Error("Text is required for text-to-speech conversion");
   }
 
   if (!target_language_code) {
-    throw new Error('Target language code is required');
+    throw new Error("Target language code is required");
   }
 
   if (!API_SECRET) {
-    throw new Error('API_SECRET is not configured');
+    throw new Error("API_SECRET is not configured");
   }
 
   // const translatedText = () => {
@@ -61,23 +65,25 @@ export const convertTextToSpeech = async (text, options = {}) => {
     text,
     target_language_code,
     speaker,
-		model,
-//    ...additionalOptions // Allow for future API parameters
+    model,
+    //    ...additionalOptions // Allow for future API parameters
   };
 
   try {
     const response = await fetch(SARVAM_TTS_API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'api-subscription-key': API_SECRET,
-        'Content-Type': 'application/json',
+        "api-subscription-key": API_SECRET,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Text-to-speech failed with status ${response.status}: ${errorText}`);
+      throw new Error(
+        `Text-to-speech failed with status ${response.status}: ${errorText}`
+      );
     }
 
     const ttsResult = await response.json();
@@ -85,14 +91,15 @@ export const convertTextToSpeech = async (text, options = {}) => {
 
     // Validate response structure
     if (!ttsResult.audios || !Array.isArray(ttsResult.audios)) {
-      throw new Error('Invalid TTS response structure - missing or invalid audios array');
+      throw new Error(
+        "Invalid TTS response structure - missing or invalid audios array"
+      );
     }
 
     return {
-      request_id: ttsResult.request_id || 'unknown',
+      request_id: ttsResult.request_id || "unknown",
       audios: ttsResult.audios,
     };
-
   } catch (error) {
     console.error("Error in text-to-speech conversion:", error);
     throw error;
