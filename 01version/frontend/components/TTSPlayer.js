@@ -30,7 +30,7 @@ const TTSComponent = ({ initialText = "" }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // States for Source Language
-  const [sourceLanguage, setSourceLanguage] = useState("auto"); // Default source language
+  const [sourceLanguage, setSourceLanguage] = useState("unknown"); // Default source language
   const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
 
   // States for Destination Language

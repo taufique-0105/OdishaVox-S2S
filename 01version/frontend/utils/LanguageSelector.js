@@ -35,7 +35,7 @@ const LanguageSelector = ({
   ];
 
   if (label === "Source Language") {
-    languages.unshift({ code: "auto", name: "Auto Detect", flag: "🌐" });
+    languages.unshift({ code: "unknown", name: "Auto Detect", flag: "🌐" });
   }
 
   useEffect(() => {

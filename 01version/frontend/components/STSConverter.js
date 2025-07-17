@@ -7,14 +7,17 @@ import {
   Text,
   View,
   Animated,
+  TouchableOpacity,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as FileSystem from "expo-file-system";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble";
 import AudioRecorderButton from "../utils/AudioRecorderButton";
+import LanguageSelector from "../utils/LanguageSelector";
+import { useSpeaker } from "../context/SpeakerContext";
 
 const STSConverter = () => {
   const [audioUri, setAudioUri] = useState(null);
@@ -27,6 +30,16 @@ const STSConverter = () => {
 
   const player = useAudioPlayer(null);
   const playerStatus = useAudioPlayerStatus(player);
+
+  const [sourceLanguage, setSourceLanguage] = useState("unknown");
+  const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
+
+  // States for Destination Language
+  const [destinationLanguage, setDestinationLanguage] = useState("od-IN");
+  const [showDestinationLanguageModal, setShowDestinationLanguageModal] =
+    useState(false);
+
+  const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
 
   useEffect(() => {
     // Scroll to end when messages update
@@ -76,7 +89,7 @@ const STSConverter = () => {
     }
     try {
       setIsLoading(true);
-      console.log("Processing audio:", audioUri);
+      // console.log("Processing audio:", audioUri);
 
       const formData = new FormData();
       formData.append("audio", {
@@ -84,6 +97,10 @@ const STSConverter = () => {
         type: "audio/wav",
         name: `recording-${Date.now()}.wav`,
       });
+
+      formData.append("source_language", sourceLanguage);
+      formData.append("destination_language", destinationLanguage);
+      formData.append("speaker", selectedSpeaker); 
 
       const response = await fetch(API_URL, {
         method: "POST",
@@ -128,7 +145,7 @@ const STSConverter = () => {
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-      console.log("Processed audio saved at", fileUri);
+      // console.log("Processed audio saved at", fileUri);
     } catch (error) {
       console.error("API Error:", error);
       Alert.alert(
@@ -171,6 +188,40 @@ const STSConverter = () => {
       <>
         <Text style={styles.title}>Speech to Speech</Text>
         <Text style={styles.subtitle}>Record, convert, and play audio</Text>
+        <View style={styles.languageSelectorsContainer}>
+          <LanguageSelector
+            label="Source Language"
+            selectedLanguage={sourceLanguage}
+            onSelectLanguage={(lang) => {
+              setSourceLanguage(lang);
+              setShowSourceLanguageModal(false);
+            }}
+            showLanguageModal={showSourceLanguageModal}
+            setShowLanguageModal={setShowSourceLanguageModal}
+          />
+          <TouchableOpacity>
+            <MaterialIcons
+              name="swap-horiz"
+              size={30}
+              color="#3498db"
+              onPress={() => {
+                const temp = sourceLanguage;
+                setSourceLanguage(destinationLanguage);
+                setDestinationLanguage(temp);
+              }}
+            />
+          </TouchableOpacity>
+          <LanguageSelector
+            label="Destination Language"
+            selectedLanguage={destinationLanguage}
+            onSelectLanguage={(lang) => {
+              setDestinationLanguage(lang);
+              setShowDestinationLanguageModal(false);
+            }}
+            showLanguageModal={showDestinationLanguageModal}
+            setShowLanguageModal={setShowDestinationLanguageModal}
+          />
+        </View>
         <View style={styles.messagesContainer}>
           <ScrollView
             ref={scrollViewRef}
@@ -181,7 +232,9 @@ const STSConverter = () => {
           >
             {messages.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Welcome to Speech to Speech</Text>
+                <Text style={styles.emptyText}>
+                  Welcome to Speech to Speech
+                </Text>
                 <Text style={styles.emptySubText}>
                   Record your voice, and we’ll convert it to another speech.
                 </Text>
@@ -251,6 +304,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     marginBottom: 20,
+  },
+  languageSelectorsContainer: {
+    marginBottom: 4,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
   },
   messagesContainer: {
     flex: 1,

@@ -31,8 +31,8 @@ const SpeakerSelector = ({
   // ];
 
   const speakers = [
-    { code: "vidya", name: 'female', color: "#d35400" },
-    { code: "abhilash", name: 'male', color: "#3498db" },
+    { code: "vidya", name: 'Female', color: "#d35400" },
+    { code: "abhilash", name: 'Male', color: "#3498db" },
   ]
 
   const modalTranslateY = useRef(new Animated.Value(500)).current;

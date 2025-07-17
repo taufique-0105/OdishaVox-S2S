@@ -34,7 +34,7 @@ const STTConverter = () => {
   const [recordedAudioForSTT, setRecordedAudioForSTT] = useState(null);
 
   // States for Source Language
-  const [sourceLanguage, setSourceLanguage] = useState("auto");
+  const [sourceLanguage, setSourceLanguage] = useState("unknown");
   const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
 
   // States for Destination Language
@@ -124,7 +124,7 @@ const STTConverter = () => {
 
       const data = await response.json();
 
-      console.log(data);
+      // console.log(data);
       if (data.translation) {
         const textMessage = {
           id: `text_${Date.now()}`,
