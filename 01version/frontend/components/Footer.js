@@ -20,7 +20,7 @@ const Footer = () => {
         <View style={styles.infoSection}>
           <Text style={styles.infoText}>
             © 2025 OdishaVox App. All rights reserved. </Text>
-          <Text style={styles.infoText}> Version 0.1.0 </Text>
+          <Text style={styles.infoText}> Version 0.1.1 </Text>
           {/* <Text style={styles.infoText}> Contact:  </Text> */}
           <Text style={styles.infoText}> Bhubaneswar, Odisha, India </Text>
         </View>

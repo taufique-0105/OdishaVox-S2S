@@ -7,14 +7,17 @@ import {
   Text,
   View,
   Animated,
+  TouchableOpacity,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as FileSystem from "expo-file-system";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble";
 import AudioRecorderButton from "../utils/AudioRecorderButton";
+import LanguageSelector from "../utils/LanguageSelector";
+import { useSpeaker } from "../context/SpeakerContext";
 
 const STSConverter = () => {
   const [audioUri, setAudioUri] = useState(null);
@@ -27,6 +30,16 @@ const STSConverter = () => {
 
   const player = useAudioPlayer(null);
   const playerStatus = useAudioPlayerStatus(player);
+
+  const [sourceLanguage, setSourceLanguage] = useState("en-IN"); // Default source language
+  const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
+
+  // States for Destination Language
+  const [destinationLanguage, setDestinationLanguage] = useState("od-IN");
+  const [showDestinationLanguageModal, setShowDestinationLanguageModal] =
+    useState(false);
+
+  const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
 
   useEffect(() => {
     // Scroll to end when messages update
@@ -65,9 +78,9 @@ const STSConverter = () => {
       return;
     }
     const host = process.env.EXPO_PUBLIC_URL;
-    const API_URL = `${host}/api/v1/sts`;
+    const URI = `${host}/api/v1/sts`;
 
-    if (!API_URL) {
+    if (!URI) {
       Alert.alert(
         "Error",
         "API URL is not defined. Please check your configuration."
@@ -76,7 +89,7 @@ const STSConverter = () => {
     }
     try {
       setIsLoading(true);
-      console.log("Processing audio:", audioUri);
+      // console.log("Processing audio:", audioUri);
 
       const formData = new FormData();
       formData.append("audio", {
@@ -85,14 +98,18 @@ const STSConverter = () => {
         name: `recording-${Date.now()}.wav`,
       });
 
-      const response = await fetch(API_URL, {
+      formData.append("source_language", sourceLanguage);
+      formData.append("destination_language", destinationLanguage);
+      formData.append("speaker", selectedSpeaker);
+
+      const response = await fetch(URI, {
         method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10, dev-v0.1.1)",
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 
@@ -128,7 +145,7 @@ const STSConverter = () => {
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-      console.log("Processed audio saved at", fileUri);
+      // console.log("Processed audio saved at", fileUri);
     } catch (error) {
       console.error("API Error:", error);
       Alert.alert(
@@ -164,65 +181,104 @@ const STSConverter = () => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={30} color="#000" />
-      </Pressable>
-      {/* hasPermission check is now handled internally by AudioRecorderButton */}
-      <>
-        <Text style={styles.title}>Speech to Speech</Text>
-        <Text style={styles.subtitle}>Record, convert, and play audio</Text>
-        <View style={styles.messagesContainer}>
-          <ScrollView
-            ref={scrollViewRef}
-            contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() =>
-              scrollViewRef.current?.scrollToEnd({ animated: true })
-            }
-          >
-            {messages.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Welcome to Speech to Speech</Text>
-                <Text style={styles.emptySubText}>
-                  Record your voice, and we’ll convert it to another speech.
-                </Text>
-                <Text style={styles.emptySubText}>
-                  Start by pressing the microphone button below.
-                </Text>
-              </View>
-            ) : (
-              messages.map((item) => (
-                <MessageBubble
-                  key={item.id}
-                  message={item}
-                  isPlaying={currentlyPlaying === item.audioUri && isPlaying}
-                />
-              ))
-            )}
-          </ScrollView>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={30} color="#000" />
+        </Pressable>
+        {/* hasPermission check is now handled internally by AudioRecorderButton */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Speech to Speech</Text>
+          <Text style={styles.subtitle}>Record, convert, and play audio</Text>
         </View>
-        <View style={styles.mainButtonContainer}>
-          <AudioRecorderButton
-            onRecordingComplete={handleRecordingComplete}
-            onRecordingStart={handleRecordingStart}
+      </View>
+      <View style={styles.languageSelectorsContainer}>
+        <LanguageSelector
+          label="Source Language"
+          selectedLanguage={sourceLanguage}
+          onSelectLanguage={(lang) => {
+            setSourceLanguage(lang);
+            setShowSourceLanguageModal(false);
+          }}
+          showLanguageModal={showSourceLanguageModal}
+          setShowLanguageModal={setShowSourceLanguageModal}
+        />
+        <TouchableOpacity>
+          <MaterialIcons
+            name="swap-horiz"
+            size={30}
+            color="#3498db"
+            onPress={() => {
+              const temp = sourceLanguage;
+              setSourceLanguage(destinationLanguage);
+              setDestinationLanguage(temp);
+            }}
           />
-          <Pressable
-            style={({ pressed }) => [
-              styles.actionButton,
-              styles.sendButton,
-              (!audioUri || isLoading) && styles.disabledButton, // Disable if no audio or conversion is loading
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={speechToSpeech}
-            disabled={!audioUri || isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Ionicons name="send" size={24} color="white" />
-            )}
-          </Pressable>
-        </View>
-      </>
+        </TouchableOpacity>
+        <LanguageSelector
+          label="Destination Language"
+          selectedLanguage={destinationLanguage}
+          onSelectLanguage={(lang) => {
+            setDestinationLanguage(lang);
+            setShowDestinationLanguageModal(false);
+          }}
+          showLanguageModal={showDestinationLanguageModal}
+          setShowLanguageModal={setShowDestinationLanguageModal}
+        />
+      </View>
+      <View style={styles.messagesContainer}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() =>
+            scrollViewRef.current?.scrollToEnd({ animated: true })
+          }
+        >
+          {messages.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Welcome to Speech to Speech</Text>
+              <Text style={styles.emptySubText}>
+                Record your voice, and we’ll convert it to another speech.
+              </Text>
+              <Text style={styles.emptySubText}>
+                Start by pressing the microphone button below.
+              </Text>
+            </View>
+          ) : (
+            messages.map((item) => (
+              <MessageBubble
+                key={item.id}
+                message={item}
+                isPlaying={currentlyPlaying === item.audioUri && isPlaying}
+              />
+            ))
+          )}
+        </ScrollView>
+      </View>
+      <View style={styles.mainButtonContainer}>
+        <AudioRecorderButton
+          onRecordingComplete={handleRecordingComplete}
+          onRecordingStart={handleRecordingStart}
+        />
+        <Pressable
+          style={({ pressed }) => [
+            styles.actionButton,
+            styles.sendButton,
+            (!audioUri || isLoading) && styles.disabledButton, // Disable if no audio or conversion is loading
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={speechToSpeech}
+          disabled={!audioUri || isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Ionicons name="send" size={24} color="white" />
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -230,27 +286,59 @@ const STSConverter = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+    // alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f8f9fa",
-    padding: 20,
+    padding: 10,
   },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    marginBottom: 16,
+    // elevation: 3,
+  },
+
   backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
   },
+
+  titleContainer: {
+    flex: 1,
+    marginLeft: 35,
+  },
+
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#212121",
   },
+
   subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
+    fontSize: 14,
+    color: "#757575",
+    marginTop: 2,
+  },
+  languageSelectorsContainer: {
+    marginBottom: 4,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
   },
   messagesContainer: {
     flex: 1,

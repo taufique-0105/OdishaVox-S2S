@@ -18,15 +18,22 @@ const SpeakerSelector = ({
   showSpeakerModal,
   setShowSpeakerModal,
 }) => {
+
+  // These are all the available speakers
+  // const speakers = [
+  //   { code: "abhilash", name: "Abhilash", color: "#3498db" },
+  //   { code: "anushka", name: "Anushka", color: "#e74c3c" },
+  //   { code: "manisha", name: "Manisha", color: "#2ecc71" },
+  //   { code: "arya", name: "Arya", color: "#f39c12" },
+  //   { code: "hitesh", name: "Hitesh", color: "#9b59b6" },
+  //   { code: "karun", name: "Karun", color: "#1abc9c" },
+  //   { code: "vidya", name: "Vidya", color: "#d35400" },
+  // ];
+
   const speakers = [
-    { code: "abhilash", name: "Abhilash", color: "#3498db" },
-    { code: "anushka", name: "Anushka", color: "#e74c3c" },
-    { code: "manisha", name: "Manisha", color: "#2ecc71" },
-    { code: "arya", name: "Arya", color: "#f39c12" },
-    { code: "hitesh", name: "Hitesh", color: "#9b59b6" },
-    { code: "karun", name: "Karun", color: "#1abc9c" },
-    { code: "vidya", name: "Vidya", color: "#d35400" },
-  ];
+    { code: "vidya", name: 'Female', color: "#d35400" },
+    { code: "abhilash", name: 'Male', color: "#3498db" },
+  ]
 
   const modalTranslateY = useRef(new Animated.Value(500)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -118,7 +125,9 @@ const SpeakerSelector = ({
         </View>
         <Animated.View style={{ opacity: fadeAnim }}>
           <MaterialIcons
-            name={showSpeakerModal ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+            name={
+              showSpeakerModal ? "keyboard-arrow-up" : "keyboard-arrow-down"
+            }
             size={28}
             color="#3498db"
           />
@@ -169,7 +178,8 @@ const SpeakerSelector = ({
                     style={[
                       styles.speakerAvatar,
                       { backgroundColor: item.color },
-                      selectedSpeaker === item.code && styles.selectedSpeakerAvatar,
+                      selectedSpeaker === item.code &&
+                        styles.selectedSpeakerAvatar,
                     ]}
                   >
                     <Text style={styles.avatarText}>
@@ -180,7 +190,8 @@ const SpeakerSelector = ({
                     <Text
                       style={[
                         styles.speakerItemText,
-                        selectedSpeaker === item.code && styles.selectedSpeakerItemText,
+                        selectedSpeaker === item.code &&
+                          styles.selectedSpeakerItemText,
                       ]}
                     >
                       {item.name}
@@ -207,8 +218,9 @@ export default SpeakerSelector;
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
-    width: "100%",
+    marginBottom: 10,
+    width: "94%",
+    alignSelf: "center",
   },
   selectorLabel: {
     fontSize: 15,
@@ -221,7 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+    padding: 10,
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1.5,
@@ -237,8 +249,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   selectorAvatar: {
-    width: 42,
-    height: 42,
+    width: 30,
+    height: 30,
     borderRadius: 21,
     marginRight: 12,
     justifyContent: "center",
@@ -252,10 +264,10 @@ const styles = StyleSheet.create({
   avatarText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 13,
   },
   speakerSelectorText: {
-    fontSize: 17,
+    fontSize: 15,
     color: "#2d3436",
     fontWeight: "600",
   },
@@ -268,8 +280,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    paddingTop: 25,
-    paddingBottom: 35,
+    paddingTop: 15,
+    paddingBottom: 15,
     maxHeight: "75%",
   },
   modalHeader: {
@@ -280,7 +292,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#f1f2f6",
-    paddingBottom: 15,
+    paddingBottom: 5,
   },
   modalTitle: {
     fontSize: 20,
@@ -293,13 +305,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 5,
   },
   speakerItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 12,
     marginVertical: 5,
@@ -310,15 +322,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   speakerAvatar: {
-    width: 50,
-    height: 50,
+    width: 30,
+    height: 30,
     borderRadius: 25,
     marginRight: 15,
     justifyContent: "center",
     alignItems: "center",
   },
   selectedSpeakerAvatar: {
-    transform: [{ scale: 1.05 }],
+    transform: [{ scale: 1.15 }],
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -326,13 +338,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   speakerItemText: {
-    fontSize: 17,
+    fontSize: 14,
     color: "#2d3436",
     fontWeight: "600",
     marginBottom: 3,
   },
   speakerRole: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#7f8c8d",
   },
   selectedSpeakerItem: {
@@ -354,6 +366,6 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: "#f1f2f6",
-    marginVertical: 5,
+    marginVertical: 2,
   },
 });

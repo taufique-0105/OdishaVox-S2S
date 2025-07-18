@@ -10,7 +10,7 @@ const OfflineNotice = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>No Internet Connection</Text>
+      <Text style={styles.text}>No Internet Connection  </Text>
     </View>
   );
 };

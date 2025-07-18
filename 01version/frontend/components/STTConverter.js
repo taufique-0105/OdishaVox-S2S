@@ -7,15 +7,14 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import {
-  useAudioPlayer,
-  useAudioPlayerStatus,
-} from "expo-audio"; // Removed useAudioRecorder, RecordingOptions, AudioModule, RecordingPresets
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"; // Removed useAudioRecorder, RecordingOptions, AudioModule, RecordingPresets
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import MessageBubble from "../utils/MessageBubble"; // Assuming MessageBubble is in '../utils/MessageBubble'
 import AudioRecorderButton from "../utils/AudioRecorderButton";
+import LanguageSelector from "../utils/LanguageSelector";
 // import AudioRecorderButton from "./AudioRecorderButton"; // Import the new AudioRecorderButton component
 
 const STTConverter = () => {
@@ -26,11 +25,25 @@ const STTConverter = () => {
   const [isLoading, setIsLoading] = useState(false); // For STT API call loading
   const [messages, setMessages] = useState([]);
   const [playingMessageId, setPlayingMessageId] = useState(null);
-  const [currentAudioUri, setCurrentAudioUri] = useState(null); // For audio playback
   const [isPlaying, setIsPlaying] = useState(false);
 
   // State to hold the URI of the last recorded audio, passed from AudioRecorderButton
   const [recordedAudioForSTT, setRecordedAudioForSTT] = useState(null);
+
+  // States for Source Language
+  const [sourceLanguage, setSourceLanguage] = useState("en-IN"); // Default source language
+  const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
+
+  // States for Destination Language
+  const [destinationLanguage, setDestinationLanguage] = useState("od-IN");
+  const [showDestinationLanguageModal, setShowDestinationLanguageModal] =
+    useState(false);
+
+  // States for Speaker Selection
+  // const [selectedSpeaker, setSelectedSpeaker] = useState("manisha");
+  // const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
+
+  // const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
 
   const player = useAudioPlayer();
   const playerStatus = useAudioPlayerStatus(player);
@@ -61,28 +74,6 @@ const STTConverter = () => {
     setPlayingMessageId(null);
   };
 
-  const playMessageAudio = async (messageId, messageAudioUri) => {
-    try {
-      if (playingMessageId === messageId) {
-        await player.pause();
-        setPlayingMessageId(null);
-      } else {
-        if (isPlaying || playingMessageId) {
-          await player.pause();
-        }
-        if (currentAudioUri !== messageAudioUri) {
-          await player.replace(messageAudioUri);
-          setCurrentAudioUri(messageAudioUri);
-        }
-        await player.play();
-        setPlayingMessageId(messageId);
-      }
-    } catch (error) {
-      console.error("Message audio playback error:", error);
-      Alert.alert("Error", "Failed to play audio message");
-    }
-  };
-
   const speechToText = async () => {
     if (!recordedAudioForSTT) {
       Alert.alert("Error", "No audio recording available to convert.");
@@ -98,23 +89,27 @@ const STTConverter = () => {
         name: "recording.wav",
       });
 
-      const apiUrl = `${process.env.EXPO_PUBLIC_URL}/api/v1/stt`;
-      console.log("API URL:", apiUrl);
-      if (!apiUrl) {
+      formData.append("source_language", sourceLanguage);
+      formData.append("destination_language", destinationLanguage);
+
+      const host = process.env.EXPO_PUBLIC_URL;
+      const URI = `${host}/api/v1/stt`;
+      // console.log("API URL:", URI);
+      if (!URI) {
         Alert.alert(
           "Error",
           "API URL is not defined. Please check your configuration."
         );
         return;
       }
-      const response = await fetch(apiUrl, {
+      const response = await fetch(URI, {
         method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 
@@ -126,10 +121,12 @@ const STTConverter = () => {
       }
 
       const data = await response.json();
-      if (data.transcript) {
+
+      // console.log(data);
+      if (data.translation) {
         const textMessage = {
           id: `text_${Date.now()}`,
-          text: data.transcript,
+          text: data.translation,
           type: "api",
           content_type: "text",
           timestamp: new Date().toLocaleTimeString([], {
@@ -194,10 +191,69 @@ const STTConverter = () => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <MaterialIcons name="arrow-back" size={30} color="#000" />
-      </Pressable>
-      <Text style={styles.title}>Speech to Text Converter</Text>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={30} color="#000" />
+        </Pressable>
+        <View style={styles.titleContainer}>
+          <Text style={{ fontSize: 24, fontWeight: "700", color: "#212121" }}>
+            Speech to Text Converter
+          </Text>
+          <Text style={styles.subtitle}>
+            Convert speech to text in various languages{" "}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.languageSelectorsContainer}>
+        <LanguageSelector
+          label="Source Language"
+          selectedLanguage={sourceLanguage}
+          onSelectLanguage={(lang) => {
+            setSourceLanguage(lang);
+            setShowSourceLanguageModal(false);
+          }}
+          showLanguageModal={showSourceLanguageModal}
+          setShowLanguageModal={setShowSourceLanguageModal}
+        />
+        <TouchableOpacity>
+          <MaterialIcons
+            name="swap-horiz"
+            size={30}
+            color="#3498db"
+            onPress={() => {
+              const temp = sourceLanguage;
+              setSourceLanguage(destinationLanguage);
+              setDestinationLanguage(temp);
+            }}
+          />
+        </TouchableOpacity>
+        <LanguageSelector
+          label="Destination Language"
+          selectedLanguage={destinationLanguage}
+          onSelectLanguage={(lang) => {
+            setDestinationLanguage(lang);
+            setShowDestinationLanguageModal(false);
+          }}
+          showLanguageModal={showDestinationLanguageModal}
+          setShowLanguageModal={setShowDestinationLanguageModal}
+        />
+      </View>
+
+      {/* Speaker Selector */}
+      {/* <View>
+        <SpeakerSelector
+          label="Speaker"
+          selectedSpeaker={selectedSpeaker}
+          onSelectSpeaker={(speakerCode) => {
+            setSelectedSpeaker(speakerCode);
+          }}
+          showSpeakerModal={showSourceSpeakerModal}
+          setShowSpeakerModal={setShowSourceSpeakerModal}
+        />
+      </View> */}
       <View style={styles.chatContainer}>
         {messages.length === 0 ? (
           <View style={styles.emptyStateContainer}>
@@ -209,8 +265,9 @@ const STTConverter = () => {
             />
             <Text style={styles.emptyTitle}>No messages yet</Text>
             <Text style={styles.emptySubtitle}>
-              Press the <Text style={styles.highlightText}>microphone button</Text>{" "}
-              below to begin
+              Press the{" "}
+              <Text style={styles.highlightText}>microphone button</Text> below
+              to begin
             </Text>
           </View>
         ) : (
@@ -225,7 +282,6 @@ const STTConverter = () => {
               <MessageBubble
                 key={message.id}
                 message={message}
-                playAudio={playMessageAudio}
                 isPlaying={playingMessageId === message.id}
               />
             ))}
@@ -262,13 +318,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    padding: 16,
+    padding: 6,
   },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    marginBottom: 16,
+    // elevation: 3,
+  },
+
   backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+
+  titleContainer: {
+    flex: 1,
+    marginLeft: 15,
+    alignItems: "center",
+  },
+  subtitle: {
+    fontSize: 12,
+    color: "#757575",
+    marginTop: 2,
+  },
+  languageSelectorsContainer: {
+    marginBottom: 4,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
   },
   emptyStateContainer: {
     flex: 1,

@@ -19,7 +19,8 @@ import { useNavigation } from "@react-navigation/native";
 import * as Network from "expo-network";
 import MessageBubble from "../utils/MessageBubble";
 import LanguageSelector from "../utils/LanguageSelector";
-import SpeakerSelector from "../utils/SpeakerSelector";
+// import SpeakerSelector from "../utils/SpeakerSelector";
+import { useSpeaker } from "../context/SpeakerContext";
 
 const TTSComponent = ({ initialText = "" }) => {
   const [text, setText] = useState(initialText);
@@ -29,7 +30,7 @@ const TTSComponent = ({ initialText = "" }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // States for Source Language
-  const [sourceLanguage, setSourceLanguage] = useState("auto"); // Default source language
+  const [sourceLanguage, setSourceLanguage] = useState("en-IN"); // Default source language
   const [showSourceLanguageModal, setShowSourceLanguageModal] = useState(false);
 
   // States for Destination Language
@@ -38,12 +39,15 @@ const TTSComponent = ({ initialText = "" }) => {
     useState(false);
 
   // States for Speaker Selection
-  const [selectedSpeaker, setSelectedSpeaker] = useState("manisha"); // State for selected speaker
-  const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
+  // const [selectedSpeaker, setSelectedSpeaker] = useState("manisha"); // State for selected speaker
+  // const [showSourceSpeakerModal, setShowSourceSpeakerModal] = useState(false);
 
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
   const navigation = useNavigation();
+  const { selectedSpeaker } = useSpeaker(); // Use the SpeakerContext to get the selected speaker
+
+  // console.log("Speaker Context:", selectedSpeaker);
 
   // Define languages locally for use in getLanguageName for message display
   const allLanguages = [
@@ -156,7 +160,8 @@ const TTSComponent = ({ initialText = "" }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "user-agent": "OdishaVoxApp/0.1.0",
+          "user-agent": 
+            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Android 10, dev-v0.1.1)",
         },
         body: JSON.stringify({
           text: text.trim(),
@@ -218,12 +223,21 @@ const TTSComponent = ({ initialText = "" }) => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 20}
       style={styles.container}
     >
-      <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-        <MaterialIcons name="arrow-back" size={20} color="#000" />
-      </Pressable>
       <View style={styles.mainContent}>
-        <Text style={styles.title}>Text-to-Speech Converter</Text>
-
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={30} color="#000000ff" />
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Text-to-Speech Converter</Text>
+            <Text style={styles.subtitle}>
+              Convert text to speech in various languages
+            </Text>
+          </View>
+        </View>
         <View style={styles.languageSelectorsContainer}>
           {/* Source Language Selector */}
           <LanguageSelector
@@ -231,12 +245,11 @@ const TTSComponent = ({ initialText = "" }) => {
             selectedLanguage={sourceLanguage}
             onSelectLanguage={(lang) => {
               setSourceLanguage(lang);
-              setShowSourceLanguageModal(false); // Close modal on selection
+              setShowSourceLanguageModal(false);
             }}
             showLanguageModal={showSourceLanguageModal}
             setShowLanguageModal={setShowSourceLanguageModal}
           />
-
           <TouchableOpacity>
             <MaterialIcons
               name="swap-horiz"
@@ -256,34 +269,29 @@ const TTSComponent = ({ initialText = "" }) => {
             selectedLanguage={destinationLanguage}
             onSelectLanguage={(lang) => {
               setDestinationLanguage(lang);
-              setShowDestinationLanguageModal(false); // Close modal on selection
+              setShowDestinationLanguageModal(false);
             }}
             showLanguageModal={showDestinationLanguageModal}
             setShowLanguageModal={setShowDestinationLanguageModal}
           />
         </View>
-
-        <View>
         {/* Source Speaker Selector */}
-        <SpeakerSelector
-          label="Speaker"
-          selectedSpeaker={selectedSpeaker}
-          onSelectSpeaker={(speakerCode) => {
-            setSelectedSpeaker(speakerCode);
-          }}
-          showSpeakerModal={showSourceSpeakerModal}
-          setShowSpeakerModal={setShowSourceSpeakerModal}
-        />
-
-        </View>
-
-        {/* <SpeakerSelector /> */}
-
+        {/* <View>
+          <SpeakerSelector
+            label="Speaker"
+            selectedSpeaker={selectedSpeaker}
+            onSelectSpeaker={(speakerCode) => {
+              setSelectedSpeaker(speakerCode);
+            }}
+            showSpeakerModal={showSourceSpeakerModal}
+            setShowSpeakerModal={setShowSourceSpeakerModal}
+          />
+        </View> */}
         <View style={styles.displayContainer}>
           {messages.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Enter text below to convert it to speech \n
+                Enter text below to convert it to speech
               </Text>
             </View>
           ) : (
@@ -348,47 +356,85 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f9fa",
   },
-  backButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    zIndex: 1,
-  },
   mainContent: {
     flex: 1,
-    padding: 20,
-    paddingTop: 30,
+    padding: 5,
+    paddingTop: 10,
   },
+  header: {
+    flexDirection: "row",
+    // justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    marginBottom: 16,
+    // elevation: 3,
+  },
+
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+
+  titleContainer: {
+    flex: 1,
+    marginLeft: 15,
+  },
+
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#212121",
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: "#757575",
+    marginTop: 2,
   },
   languageSelectorsContainer: {
-    marginBottom: 15, // Space between selectors and display area
+    marginBottom: 4,
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
   },
   displayContainer: {
     flex: 1,
-    backgroundColor: "#f0f2f5",
-    borderRadius: 10,
-    marginBottom: 15,
-    padding: 10,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 16,
+    marginBottom: 4,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    overflow: "hidden",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#7f8c8d",
+    fontSize: 15,
+    color: "#64748b",
     textAlign: "center",
+    lineHeight: 24,
+    fontWeight: "400",
   },
   inputWrapper: {
     flexDirection: "row",

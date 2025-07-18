@@ -9,7 +9,7 @@ import {
   Pressable,
 } from "react-native";
 import React, { useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
 
@@ -158,13 +158,14 @@ const Feedback = () => {
 
   return (
     <View style={styles.outerContainer}>
-      <Pressable
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-      >
-        <Ionicons name="arrow-back" size={24} color="#000" />
-      </Pressable>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={30} color="#000000ff" />
+        </TouchableOpacity>
+      </View>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -247,14 +248,34 @@ const Feedback = () => {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    paddingTop: 40,
+    // paddingTop: 40,
     backgroundColor: "#f5f5f5",
   },
+  header: {
+    flexDirection: "row",
+    // justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 26,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    // marginBottom: 16,
+    // elevation: 3,
+  },
+
   backButton: {
-    position: "absolute",
-    top: 10,
-    left: 20,
-    zIndex: 10,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e0e5ec",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
   },
   container: {
     flex: 1,

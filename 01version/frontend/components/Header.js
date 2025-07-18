@@ -39,16 +39,16 @@ const Header = () => {
           />
         </View>
 
-        {/* Feedback Button */}
+        {/* Drawer Toggle Button */}
         <TouchableOpacity
           style={styles.feedbackButton}
-          onPress={() => navigation.navigate("Feedback")}
+          onPress={() => navigation.toggleDrawer()}
           activeOpacity={0.7}
-          accessibilityLabel="Provide feedback"
+          accessibilityLabel="Open menu"
           accessibilityRole="button"
         >
           <Ionicons 
-            name={Platform.OS === 'ios' ? "chatbubble-ellipses-outline" : "chatbox-ellipses-outline"} 
+            name={Platform.OS === 'ios' ? "menu-outline" : "menu-outline"} 
             size={22} 
             color="#fff" 
           />
