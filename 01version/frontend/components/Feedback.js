@@ -91,7 +91,7 @@ const Feedback = () => {
           headers: {
             "Content-Type": "application/json",
             "user-agent":
-              "OdishaVoxApp/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
+              "BharatVox/0.1.0 (Android/Linux; ARMv8; Android 10; Build/18-06-2025)",
           },
           body: JSON.stringify(formData),
         });

@@ -32,7 +32,7 @@ const Header = () => {
         {/* Logo */}
         <View style={styles.logoWrapper}>
           <Image
-            source={require('../assets/download.png')}
+            source={require('../assets/FullLogo_Transparent-2.png')}
             style={styles.logoImage}
             resizeMode="contain"
             accessibilityLabel="App logo"
@@ -102,11 +102,11 @@ const styles = StyleSheet.create({
   logoImage: {
     width: Platform.select({
       ios: 50,
-      android: 45,
+      android: 55,
     }),
     height: Platform.select({
       ios: 50,
-      android: 45,
+      android: 55,
     }),
   },
   feedbackButton: {

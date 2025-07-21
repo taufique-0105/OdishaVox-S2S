@@ -73,7 +73,7 @@ const Home = ({ navigation }) => {
             {/* Logo & App Name */}
             <View style={styles.headerContainer}>
               <Animated.Image
-                source={require("../assets/download.png")}
+                source={require("../assets/FullLogo_Transparent-2.png")}
                 style={[
                   styles.logo,
                   {
@@ -99,7 +99,7 @@ const Home = ({ navigation }) => {
                   },
                 ]}
               >
-                OdishaVox
+                BharatVox
               </Animated.Text>
               <Animated.Text
                 style={[

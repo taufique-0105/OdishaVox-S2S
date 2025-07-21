@@ -1,6 +1,6 @@
 [![Contributing](https://img.shields.io/badge/Contributions-welcome-brightgreen.svg)][contrib]
 
-# OdishaVox
+# BharatVox
 ## Stack
 - React-native
 - Expo
@@ -47,7 +47,7 @@ brew install node
 ## Clone the repo
 
 ```
-git clone https://github.com/taufique-0105/OdishaVox.git
+git clone https://github.com/taufique-0105/BharatVox.git
 ```
 ### 
 ## Starting dev sever

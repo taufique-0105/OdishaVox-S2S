@@ -53,8 +53,8 @@ app.use(expressWinston.logger({
 
 // Root Routes
 app.get("/", (req, res) => {
-	logger.info("OdishaVox API accessed")
-  res.send("Hello, this is the API for OdishaVox!");
+	logger.info("BharatVox API accessed")
+  res.send("Hello, this is the API for BharatVox!");
 });
 
 // API Routes

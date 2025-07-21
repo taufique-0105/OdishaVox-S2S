@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "OdishaVox",
-    "slug": "OdishaVox",
+    "name": "BharatVox",
+    "slug": "BharatVox",
     "description": "A voice assistant app for Odia speakers, providing local news, weather updates, and more.",
     "version": "0.1.0+fb21c52",
     "orientation": "portrait",
@@ -27,7 +27,7 @@
           }
         }
       },
-      "bundleIdentifier": "com.taufique0105.OdishaVox"
+      "bundleIdentifier": "com.taufique0105.bharatvox"
     },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
@@ -44,7 +44,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "package": "com.taufique0105.OdishaVox",
+      "package": "com.taufique0105.bharatvox",
       "versionCode": 1
     },
     "web": {

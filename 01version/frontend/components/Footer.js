@@ -7,7 +7,7 @@ const Footer = () => {
       <View style={styles.contentWrapper}>
         {/* Brand and Tagline */}
         <View style={styles.brandSection}>
-          {/* <Text style={styles.brandText}>OdishaVox</Text> */}
+          {/* <Text style={styles.brandText}>BharatVox</Text> */}
           <Text style={styles.taglineText}>
             Empowering Voices, Connecting Odisha
           </Text>
@@ -19,7 +19,7 @@ const Footer = () => {
         {/* Additional Info */}
         <View style={styles.infoSection}>
           <Text style={styles.infoText}>
-            © 2025 OdishaVox App. All rights reserved. </Text>
+            © 2025 BharatVox App. All rights reserved. </Text>
           <Text style={styles.infoText}> Version 0.1.1 </Text>
           {/* <Text style={styles.infoText}> Contact:  </Text> */}
           <Text style={styles.infoText}> Bhubaneswar, Odisha, India </Text>

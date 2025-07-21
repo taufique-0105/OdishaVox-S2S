@@ -109,7 +109,7 @@ const STSConverter = () => {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
           "user-agent":
-            "OdishaVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
+            "BharatVoxApp/0.1.1 (Android/Linux; ARMv8; Build/17-07-2025)",
         },
       });
 
