@@ -117,7 +117,7 @@ const Home = ({ navigation }) => {
                   },
                 ]}
               >
-                Your Odia Voice Companion
+                Your companion for India's voices, in text and speech
               </Animated.Text>
             </View>
 

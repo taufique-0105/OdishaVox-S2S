@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "BharatVox",
-    "slug": "BharatVox",
-    "description": "A voice assistant app for Odia speakers, providing local news, weather updates, and more.",
+    "slug": "bharatvox",
+    "description": "BharatVox is a real time speech to speech translation app that instantly interprets and vocalise conversation across one or more Indic languages. Simply speak and BharatVox will bridge communication making conversations seamless, accessible and human.",
     "version": "0.1.0+fb21c52",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -73,7 +73,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "c5725970-f055-4325-adbd-f58217e9b34f"
+        "projectId": "f7d0e224-7faf-44b6-9948-bd4524abc9f3"
       },
       "apiUrl": "http://15.206.61.50:3000/api/v1/tts"
     }

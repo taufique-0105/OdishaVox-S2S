@@ -19,6 +19,9 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "http://15.206.61.50:3000"
       }
+    },
+    "android": {
+      "buildType": "apk"
     }
   },
   "submit": {
