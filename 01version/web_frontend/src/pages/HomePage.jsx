@@ -37,7 +37,7 @@ function HomePage() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
-            <span className="text-indigo-600">Odisha</span>Vox
+            <span className="text-indigo-600">Bharat</span>Vox
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Your multilingual voice technology platform for Odia language

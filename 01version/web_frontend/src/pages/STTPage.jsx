@@ -1,11 +1,22 @@
 import React, { useRef, useState } from 'react';
 import { FaMicrophone, FaStopCircle } from 'react-icons/fa';
 import MessageBubble from '../components/MessageBubble';
+import LanguageSelector from '../components/LanguageSelector';
+import { IoMdSwap } from 'react-icons/io';
 
 function STTPage() {
   const [messages, setMessages] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState('');
+
+  // State for source language selection
+    const [sourceLanguage, setSourceLanguage] = useState('en-IN');
+    const [showSourceModal, setShowSourceModal] = useState(false);
+  
+    // State for destination language selection
+    const [destinationLanguage, setDestinationLanguage] = useState('en-IN');
+    const [showDestinationModal, setShowDestinationModal] = useState(false);
+  
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -103,6 +114,33 @@ function STTPage() {
           <p className="text-lg text-gray-600 max-w-md mx-auto">
             Convert your speech to text with high accuracy
           </p>
+        </div>
+
+        {/* Language Selector */}
+        <div className="mb-6 flex justify-around items-center gap-4">
+          <LanguageSelector
+            label="Source Language"
+            selectedLanguage={sourceLanguage}
+            onSelectLanguage={setSourceLanguage}
+            showLanguageModal={showSourceModal}
+            setShowLanguageModal={setShowSourceModal}
+          />
+          <IoMdSwap
+            className="text-gray-400" 
+            size={24}
+            onClick={() => {
+              const temp = sourceLanguage;
+              setSourceLanguage(destinationLanguage);
+              setDestinationLanguage(temp);
+            }}
+          />
+          <LanguageSelector
+            label="Target Language"
+            selectedLanguage={destinationLanguage}
+            onSelectLanguage={setDestinationLanguage}
+            showLanguageModal={showDestinationModal}
+            setShowLanguageModal={setShowDestinationModal}
+          />
         </div>
 
         {/* Main Card */}
