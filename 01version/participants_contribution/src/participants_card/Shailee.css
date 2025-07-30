@@ -1,0 +1,36 @@
+.card {
+  width: 300px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: white;
+}
+
+.card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 15px;
+}
+
+.card-title {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.card-description {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.card-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
