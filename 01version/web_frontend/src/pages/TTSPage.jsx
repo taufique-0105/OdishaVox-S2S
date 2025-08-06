@@ -3,83 +3,74 @@ import { FaMagic, FaPaperPlane, FaPause, FaPlay } from 'react-icons/fa';
 import MessageBubble from '../components/MessageBubble';
 import LanguageSelector from '../components/LanguageSelector';
 import { IoMdSwap } from 'react-icons/io';
+import { useSpeaker } from '../context/SpeakerContext';
 
 function TTSPage() {
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioUrl, setAudioUrl] = useState('');
+  // const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState('idle');
-  const [speaker, setSpeaker] = useState('abhilash');
-  const [targetLanguage, setTargetLanguage] = useState('en-IN');
   const [messages, setMessages] = useState([]);
   // const [message, setMessage] = useState('');
 
   const audioRef = useRef(null);
 
+  const speaker = useSpeaker();
 
   // State for source language selection
   const [sourceLanguage, setSourceLanguage] = useState('en-IN');
   const [showSourceModal, setShowSourceModal] = useState(false);
 
   // State for destination language selection
-  const [destinationLanguage, setDestinationLanguage] = useState('en-IN');
+  const [destinationLanguage, setDestinationLanguage] = useState('od-IN');
   const [showDestinationModal, setShowDestinationModal] = useState(false);
 
-
-
   const convertTextToSpeech = async () => {
-    const trimmedText = text.trim();
-    const API_KEY = `${import.meta.env.VITE_SARVAM_API}/text-to-speech`;
-    console.log(`API Key: ${API_KEY}`);
+    setIsProcessing(true);
+    setStatus('processing')
+    const URL = `${import.meta.env.VITE_API_URL}/api/v1/tts`;
     try {
-      setIsProcessing(true);
-      setStatus('processing');
-      const response = await fetch( API_KEY , {
-        method: "POST",
+      const response = await fetch(URL, {
+        method: 'POST',
         headers: {
-          "api-subscription-key": "8cdff9d2-1180-46c2-86c3-f1b4b0c629d0",
-          "Content-Type": "application/json"
+          'content-type': 'application/json'
         },
         body: JSON.stringify({
-          "text": trimmedText,
-          "target_language_code": targetLanguage,
-          "speaker": speaker,
-          "pace": 0.8
-        })
+          text: text.trim(),
+          source_language_code: sourceLanguage,
+          target_language_code: destinationLanguage,
+          speaker: speaker.voiceName
+        }),
       });
 
-      const body = await response.json();
       if (!response.ok) {
-        throw new Error(`Error: ${body.message || 'Failed to convert text to speech'}`);
+        throw new Error('Failed to convert text to speech');
       }
 
-      setAudioUrl(body.audios[0]);
-
-      // console.log(body);
-      // console.log(body.audios[0])
-      audioResponseMessage(body.audios[0]);
+      const data = await response.json();
+      audioResponseMessage(data)
+      console.log('Success:', data);
+      setStatus('ready')
     } catch (error) {
+      setStatus('error')
       console.error('Error:', error);
     } finally {
-      setIsProcessing(false);
-      if (text) {
-        setStatus('ready');
-      } else {
-        setStatus('idle');
-      }
+      setIsProcessing(false)
+      setStatus()
     }
   }
 
-  const audioResponseMessage = (audioy) => {
+  const audioResponseMessage = (data) => {
     setMessages(prevMessages => [...prevMessages, {
       role: 'api',
       contentType: 'audio',
-      content: audioy
+      content: data.audios,
+      id: data.request_id,
+      timestamp: new Date().toISOString()
     }]);
   }
 
-  const textInput = async () => {
+  const handleTextInput = async (text) => {
     if (!text.trim()) {
       alert('Please enter some text to convert.');
       return;
@@ -87,11 +78,12 @@ function TTSPage() {
     setMessages(prevMessages => [...prevMessages, {
       role: 'user',
       contentType: 'text',
-      content: text
+      content: text,
+      isError: false,
+      text: text
     }])
     await convertTextToSpeech();
     setText('');
-    setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0; // Reset audio position
@@ -125,8 +117,8 @@ function TTSPage() {
             showLanguageModal={showSourceModal}
             setShowLanguageModal={setShowSourceModal}
           />
-          <IoMdSwap 
-            className="text-gray-400" 
+          <IoMdSwap
+            className="text-gray-400"
             size={24}
             onClick={() => {
               const temp = sourceLanguage;
@@ -162,27 +154,6 @@ function TTSPage() {
                   )}
                 </div>
               </div>
-
-              {/* Speaker Selection - Better spacing and alignment */}
-              <div className="px-6 py-4 flex-1 border-t md:border-t-0 border-gray-200">
-                <div className="flex flex-col">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Speaker Voice
-                  </label>
-                  <select
-                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"
-                    onChange={(e) => setSpeaker(e.target.value)}
-                  >
-                    <option value="abhilash">Abhilash (Male)</option>
-                    <option value="anushka">Anushka (Female)</option>
-                    <option value="arya">Arya (Male)</option>
-                    <option value="hitesh">Hitesh (Male)</option>
-                    <option value="karun">Karun (Male)</option>
-                    <option value="manisha">Manisha (Female)</option>
-                    <option value="vidya">Vidya (Female)</option>
-                  </select>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -208,7 +179,7 @@ function TTSPage() {
               </div>
             )}
 
-           
+
 
             {/* Text Input */}
             <div className="mb-6 p-4">
@@ -228,7 +199,7 @@ function TTSPage() {
             {/* Convert Button */}
             <div className="flex justify-center">
               <button
-                onClick={textInput}
+                onClick={() => handleTextInput(text)}
                 disabled={!text || isProcessing}
                 className={`flex items-center justify-center px-6 py-3 rounded-full text-white shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-opacity-50 
                 ${!text || isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600 focus:ring-indigo-300'}`}

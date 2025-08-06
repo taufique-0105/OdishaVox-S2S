@@ -11,25 +11,28 @@ import Register from "./pages/Register";
 import "./index.css";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import { SpeakerProvider } from "./context/SpeakerContext";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="/feedback" element={<FeedbackPage />} />
-          <Route path="/tts" element={<TTSPage />} />
-          <Route path="/sts" element={<STSPage />} />
-          <Route path="/stt" element={<STTPage />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Route>
-      </Routes>
-    </Router>
+    <SpeakerProvider>
+      <Router>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/tts" element={<TTSPage />} />
+            <Route path="/sts" element={<STSPage />} />
+            <Route path="/stt" element={<STTPage />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+          </Route>
+        </Routes>
+      </Router>
+    </SpeakerProvider>
   );
 }
 

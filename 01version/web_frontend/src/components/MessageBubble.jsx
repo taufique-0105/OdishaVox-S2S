@@ -14,7 +14,7 @@ const MessageBubble = ({ contents }) => {
 
   useEffect(() => {
     if (contentType === 'audio' && content) {
-      const audioObj = new Audio(content);
+      const audioObj = new Audio("data:audio/wav;base64," +content[0]);
       setAudio(audioObj);
       setIsAudioLoaded(true);
 
@@ -118,7 +118,7 @@ const MessageBubble = ({ contents }) => {
   };
 
   const bubbleClasses = `
-    max-w-xs p-4 rounded-lg flex items-center
+    w-auto p-4 rounded-lg flex items-center
     ${role === 'user' ? 'bg-indigo-100 text-indigo-900' : 'bg-purple-100 text-purple-900'}
     ${isError ? 'bg-red-100 text-red-900' : ''}
     shadow-sm transition-all duration-200
@@ -167,7 +167,7 @@ const MessageBubble = ({ contents }) => {
   return (
     <div
       className={`
-        max-w-[40%] my-2
+        max-w-[40%]  my-2
         ${role === 'user' ? 'ml-auto mr-3 items-end' : 'mr-auto ml-3 items-start'}
       `}
     >
@@ -177,9 +177,9 @@ const MessageBubble = ({ contents }) => {
         style={{ cursor: contentType === 'text' ? 'pointer' : 'default' }}
       >
         {isError ? (
-          <span className="text-sm text-center font-medium">{text}</span>
+          <span className="text-lg text-center font-medium">{text}</span>
         ) : contentType === 'text' ? (
-          <span className="text-sm">{text}</span>
+          <span className="text-lg font-medium">{text}</span>
         ) : (
           renderAudioPlayer()
         )}
