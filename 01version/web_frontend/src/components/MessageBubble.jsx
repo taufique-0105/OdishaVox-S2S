@@ -16,7 +16,7 @@ const MessageBubble = ({ contents }) => {
 
   useEffect(() => {
     if (contentType === 'audio' && content && role === 'api') {
-      const audioObj = new Audio("data:audio/wav;base64," +content);
+      const audioObj = new Audio("data:audio/wav;base64," + content);
       setAudio(audioObj);
       setIsAudioLoaded(true);
 
@@ -26,7 +26,7 @@ const MessageBubble = ({ contents }) => {
         audioObj.removeEventListener('ended', () => setIsAudioPlaying(false));
       };
     }
-    else if (contentType === 'audio' && content && role === 'user'){
+    else if (contentType === 'audio' && content && role === 'user') {
       const audioObj = new Audio(content);
       setAudio(audioObj);
       setIsAudioLoaded(true);
@@ -93,17 +93,55 @@ const MessageBubble = ({ contents }) => {
 
     setIsDownloading(true);
     try {
-      const response = await fetch(content);
-      const blob = await response.blob();
+      let blob;
+      let filename = `audio_message_${new Date().toISOString().slice(0, 10)}.wav`;
+
+      if (role === 'api') {
+        // Handle API response - content is just the base64 string without prefix
+        const base64String = content;
+        const byteCharacters = atob(base64String);
+        const byteNumbers = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        blob = new Blob([byteNumbers], { type: 'audio/wav' });
+      } else {
+        // Handle user-uploaded audio
+        if (content.startsWith('blob:')) {
+          // If it's already a blob URL, fetch it directly
+          const response = await fetch(content);
+          blob = await response.blob();
+        } else if (content.startsWith('data:')) {
+          // Handle data URI if needed
+          const response = await fetch(content);
+          blob = await response.blob();
+        } else {
+          // Handle regular URL
+          const response = await fetch(content);
+          blob = await response.blob();
+
+          // Try to get filename from URL
+          const urlParts = content.split('/');
+          const lastPart = urlParts[urlParts.length - 1];
+          if (lastPart && lastPart.includes('.')) {
+            filename = lastPart.split('?')[0]; // Remove query parameters if any
+          }
+        }
+      }
+
+      // Create and trigger download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = content.split('/').pop() || 'downloaded_audio.wav';
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      alert('Download Complete: Audio has been saved.');
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
     } catch (error) {
       console.error('Error downloading audio:', error);
       alert(`Download Failed: ${error.message}`);
