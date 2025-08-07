@@ -15,6 +15,7 @@ import { SpeakerProvider } from "./context/SpeakerContext";
 import Demo from "./pages/Demo";
 import "./index.css";
 import ConsentPopUp from "./components/ConsentPopUp";
+import Paywall from "./pages/Paywall";
 
 // ScrollToTop Component
 function ScrollToTop() {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/demo" element={<Demo />} />
+            <Route path="/paywall" element={<Paywall />}/>
           </Route>
         </Routes>
         <ConsentPopUp />

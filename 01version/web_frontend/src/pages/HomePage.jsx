@@ -65,14 +65,14 @@ function HomePage() {
           <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
             Your premier multilingual voice technology platform specializing in Indic language
           </p>
-          {/* <div className="mt-8">
+          <div className="mt-8">
             <button 
-              onClick={() => navigate("/demo")}
+              onClick={() => navigate("/paywall")}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-xl transition duration-300 inline-flex items-center"
             >
-              <FiVolume2 className="mr-2" /> Live Demo
+              <FiVolume2 className="mr-2" /> Paywall
             </button>
-          </div> */}
+          </div>
         </div>
 
         {/* Features Grid */}
