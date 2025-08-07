@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaTools, FaClock } from 'react-icons/fa';
 
-const Login = () => {
+const Demo = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
       <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md">
@@ -26,4 +26,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Demo;

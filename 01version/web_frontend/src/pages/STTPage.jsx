@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import { Spinner } from 'react-bootstrap';
+
 import { FaMicrophone, FaStopCircle } from 'react-icons/fa';
 import MessageBubble from '../components/MessageBubble';
 import LanguageSelector from '../components/LanguageSelector';
@@ -7,16 +9,16 @@ import { IoMdSwap } from 'react-icons/io';
 function STTPage() {
   const [messages, setMessages] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // State for source language selection
-    const [sourceLanguage, setSourceLanguage] = useState('en-IN');
-    const [showSourceModal, setShowSourceModal] = useState(false);
-  
-    // State for destination language selection
-    const [destinationLanguage, setDestinationLanguage] = useState('en-IN');
-    const [showDestinationModal, setShowDestinationModal] = useState(false);
-  
+  const [sourceLanguage, setSourceLanguage] = useState('en-IN');
+  const [showSourceModal, setShowSourceModal] = useState(false);
+
+  // State for destination language selection
+  const [destinationLanguage, setDestinationLanguage] = useState('en-IN');
+  const [showDestinationModal, setShowDestinationModal] = useState(false);
+
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -49,21 +51,25 @@ function STTPage() {
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioURL((prevURL) => {
-          if (prevURL) {
-            URL.revokeObjectURL(prevURL);
-          }
-          return audioUrl;
-        });
         audioChunksRef.current = []; // Clear the chunks for the next recording
         streamRef.current?.getTracks().forEach(track => track.stop());
         setMessages((prevMessages) => [
           ...prevMessages,
-          { role: 'user', contentType: 'audio', content: audioUrl }
+          {
+            role: 'user',
+            contentType: 'audio',
+            content: audioUrl,
+            timestamp: new Date().toISOString(),
+            id: Date.now() + Math.random().toString(36)
+          }
         ])
+        // console.log(audioUrl)
+        setIsProcessing(true);
+        fetchSTT(audioBlob)
       }
 
       mediaRecorderRef.current.start();
+      // console.log("Recording Started")
       setIsRecording(true);
 
     } catch (error) {
@@ -72,23 +78,63 @@ function STTPage() {
       return;
     }
 
+
   }
 
   const stopRecording = () => {
     // 3. Stop recording logic
+    // console.log("Recording stoped")
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
   }
 
-  const playAudio = (audioUri) => {
-    if (audioUri) {
-      const audio = new Audio(audioUri);
-      audio.play().catch((error) => {
-        console.error('Error playing audio:', error);
-        alert('Failed to play the recorded audio. Please check your browser settings.');
-      });
+  const fetchSTT = async (audioURL) => {
+    if (!audioURL) {
+      alert("No audio recording present, record audio and then submit.")
+    }
+    // console.log(audioURL)
+    setIsProcessing(true)
+    const URL = `${import.meta.env.VITE_API_URL}/api/v1/stt`;
+    // console.log(URL)
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioURL, "recording.wav");
+      formData.append("source_language", sourceLanguage);
+      formData.append("destination_language", destinationLanguage);
+      // console.log(formData)
+      const response = await fetch(URL, {
+        method: 'POST',
+        // headers: {
+        //   'content-type': 'application/json'
+        // },
+        body: formData
+      })
+      const data = await response.json();
+
+      // console.log(data.translation)
+      if (data.translation) {
+        const textMessage = {
+          id: `text_${Date.now()}`,
+          text: data.translation,
+          content: data.translation,
+          role: "api",
+          contentType: "text",
+          timestamp: new Date().toLocaleTimeString(),
+          isError: false,
+        };
+
+        // console.log(textMessage)
+        setMessages((prev) => [...prev, textMessage]);
+      }
+      // console.log(data)
+    } catch (error) {
+      alert("Error while fetching API.")
+      console.log(error)
+    }
+    finally {
+      setIsProcessing(false)
     }
   }
 
@@ -126,7 +172,7 @@ function STTPage() {
             setShowLanguageModal={setShowSourceModal}
           />
           <IoMdSwap
-            className="text-gray-400" 
+            className="text-gray-400"
             size={24}
             onClick={() => {
               const temp = sourceLanguage;
@@ -151,7 +197,11 @@ function STTPage() {
               <span className="font-medium text-gray-800">
                 {isRecording ? 'Recording in progress...' : 'Ready to record'}
               </span>
-              {isRecording && (
+              {isProcessing ? (
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
+              ) : isRecording && (
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
                   <span className="text-sm text-gray-600">REC</span>
@@ -170,7 +220,8 @@ function STTPage() {
                     contents={{
                       role: message.role,
                       contentType: message.contentType,
-                      content: message.content
+                      content: message.content,
+                      text: message.text // Add this line to pass the text content
                     }}
                     key={index}
                   />
@@ -209,9 +260,7 @@ function STTPage() {
 
           {/* Footer */}
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500 text-center">
-              Your audio is processed securely and never stored permanently.
-            </p>
+            <p className="text-sm text-gray-500 text-center">Convert your speech to text with high accuracy.</p>
           </div>
         </div>
       </div>

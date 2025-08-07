@@ -1,6 +1,6 @@
 [![Contributing](https://img.shields.io/badge/Contributions-welcome-brightgreen.svg)][contrib]
 
-# OdishaVox
+# BharatVox
 
 ## Stack
 

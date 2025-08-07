@@ -3,11 +3,11 @@ import { FaMicrophone, FaStopCircle, FaPaperPlane } from 'react-icons/fa';
 import { IoIosSwap, IoMdChatbubbles, IoMdSwap } from 'react-icons/io';
 import MessageBubble from '../components/MessageBubble';
 import LanguageSelector from '../components/LanguageSelector';
+import { useSpeaker } from '../context/SpeakerContext';
 
 function STSPage() {
   const [messages, setMessages] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState('');
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -18,8 +18,10 @@ function STSPage() {
   const [showSourceModal, setShowSourceModal] = useState(false);
 
   // State for destination language selection
-  const [destinationLanguage, setDestinationLanguage] = useState('en-IN');
+  const [destinationLanguage, setDestinationLanguage] = useState('od-IN');
   const [showDestinationModal, setShowDestinationModal] = useState(false);
+
+  const speaker = useSpeaker();
 
   const startRecording = async () => {
     if (!window.MediaRecorder) {
@@ -46,18 +48,20 @@ function STSPage() {
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
-        setAudioURL((prevURL) => {
-          if (prevURL) {
-            URL.revokeObjectURL(prevURL);
-          }
-          return audioUrl;
-        });
         audioChunksRef.current = [];
         streamRef.current?.getTracks().forEach(track => track.stop());
         setMessages((prevMessages) => [
           ...prevMessages,
-          { sender: 'user', contentType: 'audio', content: audioUrl, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+          {
+            id: `text_${Date.now()}`,
+            role: 'user',
+            contentType: 'audio',
+            content: audioUrl,
+            timestamp: new Date().toLocaleTimeString()
+          },
         ]);
+
+        fetchSTS(audioBlob);
       };
 
       mediaRecorderRef.current.start();
@@ -75,15 +79,59 @@ function STSPage() {
     }
   };
 
-  // const playAudio = (audioUri) => {
-  //   if (audioUri) {
-  //     const audio = new Audio(audioUri);
-  //     audio.play().catch((error) => {
-  //       console.error('Error playing audio:', error);
-  //       alert('Failed to play the recorded audio. Please check your browser settings.');
-  //     });
-  //   }
-  // };
+  const fetchSTS = async (audioBlob) => {
+    if (!audioBlob) {
+      alert("No audio, record again and submit.")
+    }
+
+    const URI = `${import.meta.env.VITE_API_URL}/api/v1/sts`
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.wav");
+    formData.append("source_language", sourceLanguage);
+    formData.append("destination_language", destinationLanguage);
+    formData.append("speaker", speaker.voiceName);
+
+    console.log(formData.getAll)
+
+    // console.log(formData)
+    console.log(formData)
+    try {
+      const response = await fetch(URI, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "user-agent":
+            "BharatVoxApp/web-app-v0.1.0",
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Server responded with an error");
+      }
+
+      const data = await response.json();
+
+      console.log(data);
+
+      if (data.translation) {
+        const audioMessage = {
+          id: `audio_${Date.now()}`,
+          role: "api",
+          contentType: "audio",
+          content: data.audio,
+          timestamp: new Date().toLocaleTimeString(),
+          isError: false,
+        };
+        setMessages((prev) => [...prev, audioMessage]);
+      }
+
+    } catch (error) {
+      alert("Error during API fetch.")
+      console.error(error)
+    }
+  }
 
   const getPermissionforMicrophone = async () => {
     try {
@@ -96,15 +144,6 @@ function STSPage() {
     }
   };
 
-  const sendMessage = () => {
-    if (audioURL) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: 'app', contentType: 'audio', content: audioURL, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-      ]);
-      setAudioURL('');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -130,8 +169,8 @@ function STSPage() {
             showLanguageModal={showSourceModal}
             setShowLanguageModal={setShowSourceModal}
           />
-          <IoMdSwap 
-            className="text-gray-400" 
+          <IoMdSwap
+            className="text-gray-400"
             size={24}
             onClick={() => {
               const temp = sourceLanguage;
@@ -174,7 +213,7 @@ function STSPage() {
                   <MessageBubble
                     key={index}
                     contents={{
-                      role: msg.sender,
+                      role: msg.role, // Changed from msg.sender to msg.role
                       contentType: msg.contentType,
                       content: msg.content,
                       text: msg.text, // Include if text content is available
@@ -211,22 +250,16 @@ function STSPage() {
                   {isRecording ? 'Stop Recording' : 'Start Recording'}
                 </span>
               </button>
-              <button
-                className="flex items-center justify-center px-4 py-3 rounded-full bg-purple-500 hover:bg-purple-600 text-white shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50 disabled:opacity-50"
-                onClick={sendMessage}
-                disabled={!audioURL}
-              >
-                <FaPaperPlane className="h-5 w-5" />
-              </button>
             </div>
           </div>
 
           {/* Footer */}
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <p className="text-sm text-gray-500 text-center">
-              Your audio is processed securely and never stored permanently.
+              Convert speech from one language to another and listen to the translation.
             </p>
           </div>
+          
         </div>
       </div>
     </div>

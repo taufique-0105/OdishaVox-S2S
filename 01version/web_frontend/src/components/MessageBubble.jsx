@@ -12,9 +12,11 @@ const MessageBubble = ({ contents }) => {
   const lastTap = useRef(0);
   const doubleTapDelay = 300;
 
+  // console.log(content)
+
   useEffect(() => {
-    if (contentType === 'audio' && content) {
-      const audioObj = new Audio("data:audio/wav;base64," +content[0]);
+    if (contentType === 'audio' && content && role === 'api') {
+      const audioObj = new Audio("data:audio/wav;base64," +content);
       setAudio(audioObj);
       setIsAudioLoaded(true);
 
@@ -23,11 +25,23 @@ const MessageBubble = ({ contents }) => {
         audioObj.pause();
         audioObj.removeEventListener('ended', () => setIsAudioPlaying(false));
       };
-    } else {
+    }
+    else if (contentType === 'audio' && content && role === 'user'){
+      const audioObj = new Audio(content);
+      setAudio(audioObj);
+      setIsAudioLoaded(true);
+
+      audioObj.addEventListener('ended', () => setIsAudioPlaying(false));
+      return () => {
+        audioObj.pause();
+        audioObj.removeEventListener('ended', () => setIsAudioPlaying(false));
+      };
+    }
+    else {
       setAudio(null);
       setIsAudioLoaded(false);
     }
-  }, [content, contentType]);
+  }, [content, contentType, role]);
 
   useEffect(() => {
     if (audio) {

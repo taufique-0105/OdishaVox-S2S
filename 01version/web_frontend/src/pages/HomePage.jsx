@@ -35,24 +35,24 @@ function HomePage() {
   const stats = [
     { value: "10K+", label: "Daily Users", icon: <FiUsers className="w-6 h-6" /> },
     { value: "99%", label: "Accuracy", icon: <FiAward className="w-6 h-6" /> },
-    { value: "50+", label: "Languages", icon: <FiGlobe className="w-6 h-6" /> },
+    { value: "10+", label: "Languages", icon: <FiGlobe className="w-6 h-6" /> },
     { value: "Instant", label: "Processing", icon: <FiClock className="w-6 h-6" /> }
   ];
 
-  const testimonials = [
-    {
-      quote: "BharatVox has revolutionized how we handle Odia language content. The accuracy is unmatched!",
-      author: "Pranab Das, Content Creator"
-    },
-    {
-      quote: "As a teacher, this platform helps me create accessible learning materials for my students.",
-      author: "Priyanka Mohanty, Educator"
-    },
-    {
-      quote: "The speech-to-speech conversion helps me communicate effectively with my international clients.",
-      author: "Rajesh Patnaik, Business Owner"
-    }
-  ];
+  // const testimonials = [
+  //   {
+  //     quote: "BharatVox has revolutionized how we handle Odia language content. The accuracy is unmatched!",
+  //     author: "Pranab Das, Content Creator"
+  //   },
+  //   {
+  //     quote: "As a teacher, this platform helps me create accessible learning materials for my students.",
+  //     author: "Priyanka Mohanty, Educator"
+  //   },
+  //   {
+  //     quote: "The speech-to-speech conversion helps me communicate effectively with my international clients.",
+  //     author: "Rajesh Patnaik, Business Owner"
+  //   }
+  // ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -63,16 +63,16 @@ function HomePage() {
             <span className="text-indigo-600">Bharat</span>Vox
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
-            Your premier multilingual voice technology platform specializing in Odia language
+            Your premier multilingual voice technology platform specializing in Indic language
           </p>
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <button 
               onClick={() => navigate("/demo")}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-xl transition duration-300 inline-flex items-center"
             >
               <FiVolume2 className="mr-2" /> Live Demo
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Features Grid */}
@@ -124,7 +124,7 @@ function HomePage() {
             <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
               <div className="text-indigo-600 text-3xl font-bold mb-4">1</div>
               <h3 className="text-xl font-semibold mb-3">Select Feature</h3>
-              <p className="text-gray-600">Choose from our advanced voice technology tools tailored for Odia language</p>
+              <p className="text-gray-600">Choose from our advanced voice technology tools tailored for Indic language</p>
             </div>
             <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
               <div className="text-indigo-600 text-3xl font-bold mb-4">2</div>
@@ -134,13 +134,13 @@ function HomePage() {
             <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow">
               <div className="text-indigo-600 text-3xl font-bold mb-4">3</div>
               <h3 className="text-xl font-semibold mb-3">Get Results</h3>
-              <p className="text-gray-600">Receive your converted output in Odia or your preferred language instantly</p>
+              <p className="text-gray-600">Receive your converted output in your preferred language instantly</p>
             </div>
           </div>
         </div>
 
         {/* Testimonials */}
-        <div className="mb-24">
+        {/* <div className="mb-24">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">What Our Users Say</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {testimonials.map((testimonial, index) => (
@@ -150,7 +150,7 @@ function HomePage() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* CTA Section */}
         <div className="bg-indigo-600 rounded-2xl p-12 text-center">
@@ -159,7 +159,7 @@ function HomePage() {
             Join thousands of users who are already benefiting from our advanced voice technology platform.
           </p>
           <button
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/sts")}
             className="bg-white text-indigo-600 hover:bg-gray-100 font-semibold py-3 px-8 rounded-xl transition duration-300"
           >
             Get Started for Free
