@@ -15,6 +15,7 @@ import speechToTextRouter from "./api/v1/routes/speechToTextRouter.js";
 import speechToSpeechRouter from "./api/v1/routes/speechToSpeechRouter.js";
 import textToTextRouter from "./api/v1/routes/textToTextRouter.js";
 import feedbackRouter from "./api/v1/routes/feedbackRouter.js";
+import contactInfoRouter from "./api/v1/routes/contactInfoRouter.js";
 
 // ES6 modules __dirname equvalant
 const __filename = fileURLToPath(import.meta.url);
@@ -63,6 +64,7 @@ app.use('/api/v1/stt', speechToTextRouter);
 app.use('/api/v1/sts', speechToSpeechRouter);
 app.use('/api/v1/ttt', textToTextRouter);
 app.use('/api/v1/feedback', feedbackRouter);
+app.use('/api/v1/contactinfo', contactInfoRouter);
 
 
 // Error logging middleware (after routes)
