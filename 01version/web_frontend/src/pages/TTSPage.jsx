@@ -90,6 +90,13 @@ function TTSPage() {
     }
   }
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleTextInput(text)
+      // Clear the input after action (optional)
+      setText('');
+    }
+  }
 
   useEffect(() => {
     console.log(messages)
@@ -185,10 +192,11 @@ function TTSPage() {
             <div className="mb-6 p-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">Your Text</label>
               <textarea
-                rows="4"
-                className="w-full rounded-md p-3 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                rows="2"
+                className="w-full border-2 rounded-md p-3 border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                 placeholder="Type or paste the text you want to convert to speech..."
                 value={text}
+                onKeyDown={handleKeyDown}
                 onChange={
                   (e) => setText(e.target.value)
                 }

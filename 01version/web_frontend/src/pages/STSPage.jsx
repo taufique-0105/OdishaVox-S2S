@@ -91,10 +91,10 @@ function STSPage() {
     formData.append("destination_language", destinationLanguage);
     formData.append("speaker", speaker.voiceName);
 
-    console.log(formData.getAll)
+    // console.log(formData.getAll)
 
     // console.log(formData)
-    console.log(formData)
+    // console.log(formData)
     try {
       const response = await fetch(URI, {
         method: "POST",
@@ -113,7 +113,7 @@ function STSPage() {
 
       const data = await response.json();
 
-      console.log(data);
+      // console.log(data);
 
       if (data.translation) {
         const audioMessage = {
