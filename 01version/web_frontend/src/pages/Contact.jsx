@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaEnvelope } from 'react-icons/fa';
 import { FiMail, FiPhone, FiMapPin, FiSend, FiClock, FiUser, FiLoader } from 'react-icons/fi';
 
 function Contact() {
@@ -134,7 +135,13 @@ function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Email Us</h3>
-                  <p className="text-gray-600">info@bharatvox.com</p>
+                  <a
+                    href="mailto:info@bharatvox.com"
+                    className="flex items-center text-gray-600 space-x-2 hover:text-indigo-700 transition-colors"
+                  >
+                    {/* <FaEnvelope className="w-5 h-5 text-indigo-600" /> */}
+                    <span>info@bharatvox.com</span>
+                  </a>
                 </div>
               </div>
 
@@ -144,8 +151,18 @@ function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Call Us</h3>
-                  <p className="text-gray-600">+91 84804 36978</p>
-                  <p className="text-gray-600">+91 90404 02026</p>
+                  <a
+                    href="tel:+918480436978"
+                    className="flex items-center space-x-2 text-md text-gray-600 hover:text-indigo-700 transition-colors"
+                  >
+                    <span>+91 84804 36978</span>
+                  </a>
+                  <a
+                    href="tel:+919040402026"
+                    className="flex items-center text-gray-600 text-md space-x-2 hover:text-indigo-700 transition-colors"
+                  >
+                    <span>+91 90404 02026</span>
+                  </a>
                 </div>
               </div>
 
@@ -284,7 +301,7 @@ function Contact() {
               },
               {
                 question: "What can Bharat Vox do?",
-                answer: "Bharat Vox is an AI-powered app that helps you translate your voice or text from any Indian language to English. It supports: " + 
+                answer: "Bharat Vox is an AI-powered app that helps you translate your voice or text from any Indian language to English. It supports: " +
                   '✅ Speech-to-Speech' +
                   '✅ Speech-to-Text' +
                   '✅ Text-to-Speech' +
