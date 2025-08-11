@@ -6,6 +6,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import TeamCarousel from '../components/TeamCarousel';
+import officeWorking from '../assets/office-img.avif'
 
 function About() {
   return (
@@ -82,7 +83,7 @@ function About() {
 
           <div className="rounded-xl overflow-hidden shadow-md">
             <img
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+              src={officeWorking}
               alt="BharatVox team working on voice technology"
               className="w-full h-auto object-cover"
               onError={(e) => {
