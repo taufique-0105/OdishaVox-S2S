@@ -1,6 +1,11 @@
 import React from 'react';
+import { FaGoogle } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode"; // To decode the JWT for inspection
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Login = () => {
+  const navigate = useNavigate(); // Initialize navigate
   return (
     <div className="flex justify-center items-center min-h-[80vh] bg-white px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
@@ -63,17 +68,50 @@ const Login = () => {
             <span className="mx-2 text-sm text-gray-500">OR</span>
             <div className="flex-grow h-px bg-gray-300"></div>
           </div>
-          <button
-            type="button"
-            className="w-full flex items-center justify-center border border-gray-300 py-2 mt-4 rounded-md bg-white hover:bg-gray-100 transition"
-          >
-            <img
-              src="https://developers.google.com/identity/images/g-logo.png"
-              alt="Google logo"
-              className="w-5 h-5 mr-2"
-            />
-            <span className="text-gray-700">Sign in with Google</span>
-          </button>
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                console.log("Google Token:", credentialResponse.credential);
+                const decoded = jwtDecode(credentialResponse.credential);
+                console.log("Decoded Google JWT:", decoded);
+
+                // Send token to your backend for verification and user login/registration
+                const GOOGLE_LOGIN_API_URL = `${import.meta.env.VITE_API_URL}/api/v1/google`;
+                const response = await fetch(GOOGLE_LOGIN_API_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token: credentialResponse.credential }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Google login failed on server.");
+
+                console.log("Google login success:", data);
+                if (data.token) {
+                  localStorage.setItem('authToken', data.token);
+                }
+                navigate("/profile");
+              } catch (err) {
+                console.error("Google login error:", err);
+                // Optionally, display an error message to the user
+              }
+            }}
+            onError={() => {
+              console.log("Google Login Failed");
+              // Optionally, display an error message to the user
+            }}
+            render={renderProps => (
+              <button
+                onClick={renderProps.onClick}
+                disabled={renderProps.disabled}
+                type="button"
+                className="w-full flex items-center justify-center border border-gray-300 py-2 mt-4 rounded-md bg-white hover:bg-gray-100 transition"
+              >
+                <FaGoogle className="w-5 h-5 mr-2" />
+                <span className="text-gray-700">Sign in with Google</span>
+              </button>
+            )}
+          />
         </form>
         <p className="text-sm text-center text-gray-600 mt-4">
           Don’t have an account?{' '}

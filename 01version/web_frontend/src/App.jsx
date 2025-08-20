@@ -9,7 +9,8 @@ import STTPage from "./pages/STTPage";
 import Layout from "./components/Layout";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
-import Register from "./pages/Register";      // <-- Ensure this file exists
+import Register from "./pages/Register";
+import Profile from "./pages/Profile"; // Import the new Profile component
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import { SpeakerProvider } from "./context/SpeakerContext";
@@ -45,6 +46,7 @@ function App() {
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} /> {/* New Profile route */}
 
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />

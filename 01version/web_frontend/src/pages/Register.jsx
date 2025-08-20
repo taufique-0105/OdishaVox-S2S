@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 
 const Register = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -24,7 +29,7 @@ const Register = () => {
     //   setProcessing(false);
     //   return;
     // }
-    
+
     // UI 
     console.log("Registration form:", form);
     try {
@@ -43,13 +48,18 @@ const Register = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to register the user');
       }
-      
+
       // If successful
       const data = await response.json();
       setStatus("Registration successful!");
+      console.log(data);
 
-      console.log(data)
-      
+      // Store the token (assuming the backend sends one for direct registration)
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+      navigate("/profile"); // Redirect to profile page after successful registration
+
     } catch (error) {
       console.log(error.message);
       setStatus(error.message || "An error occurred during registration");
@@ -63,17 +73,17 @@ const Register = () => {
   //     setStatus("Please fill in all fields");
   //     return false;
   //   }
-    
+
   //   if (form.password !== form.confirmPassword) {
   //     setStatus("Passwords do not match");
   //     return false;
   //   }
-    
+
   //   if (form.password.length < 6) {
   //     setStatus("Password should be at least 6 characters");
   //     return false;
   //   }
-    
+
   //   setStatus("");
   //   return true;
   // };
@@ -88,12 +98,11 @@ const Register = () => {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
           Create an Account
         </h2>
-        
+
         {/* Status message */}
         {status && (
-          <p className={`text-center mb-4 text-sm ${
-            status.includes("successful") ? "text-green-600" : "text-red-600"
-          }`}>
+          <p className={`text-center mb-4 text-sm ${status.includes("successful") ? "text-green-600" : "text-red-600"
+            }`}>
             {status}
           </p>
         )}
@@ -190,23 +199,53 @@ const Register = () => {
           <hr className="flex-1 border-gray-300" />
         </div>
 
-        {/* Social Logins (UI only) */}
-        <div className="flex gap-4">
-          <button
-            type="button"
-            className="flex-1 inline-flex items-center justify-center rounded-lg border py-2 hover:bg-gray-50 transition"
-          >
-            <FaGoogle className="mr-2" />
-            Google
-          </button>
-          <button
-            type="button"
-            className="flex-1 inline-flex items-center justify-center rounded-lg border py-2 hover:bg-gray-50 transition"
-          >
-            <FaGithub className="mr-2" />
-            GitHub
-          </button>
-        </div>
+        {/* Social Logins */}
+        {/* <div className="flex gap-4"> */}
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                console.log("Google Token:", credentialResponse.credential);
+                const decoded = jwtDecode(credentialResponse.credential);
+                console.log("Decoded Google JWT:", decoded);
+
+                const GOOGLE_API_URL = `${import.meta.env.VITE_API_URL}/api/v1/google`;
+                const response = await fetch(GOOGLE_API_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token: credentialResponse.credential }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Google registration failed on server.");
+
+                console.log("Google login success:", data);
+                setStatus("Google login successful!");
+                if (data.token) {
+                  localStorage.setItem('authToken', data.token);
+                }
+                navigate("/profile");
+              } catch (err) {
+                console.error(err);
+                setStatus(err.message || "Google login failed!");
+              }
+            }}
+            onError={() => {
+              console.log("Google Login Failed");
+              setStatus("Google login failed!");
+            }}
+            render={renderProps => (
+              <button
+                onClick={renderProps.onClick}
+                disabled={renderProps.disabled}
+                type="button"
+                className="flex-1 inline-flex items-center justify-center rounded-lg border py-2 hover:bg-gray-50 transition"
+              >
+                <FaGoogle className="mr-2" />
+                Google
+              </button>
+            )}
+          />
+        {/* </div> */}
       </div>
     </div>
   );
