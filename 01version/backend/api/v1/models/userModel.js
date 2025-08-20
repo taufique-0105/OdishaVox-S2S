@@ -23,7 +23,15 @@ const userSchema = mongoose.Schema(
         },
         password: {
             type: String,
-            required: true,
+            required: false, // Make password optional for Google sign-in
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true, // Allows null values to not violate unique constraint
+        },
+        profilePicture: {
+            type: String,
         },
     },
     {
@@ -31,17 +39,20 @@ const userSchema = mongoose.Schema(
     }
 );
 
-// Hash password before saving
+// Hash password before saving, only if password is provided and modified
 userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) {
-        next();
+    if (this.password && this.isModified("password")) {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
 // Compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+    if (!this.password) { // If no password, it's a Google login
+        return false;
+    }
     return await bcrypt.compare(enteredPassword, this.password);
 };
 

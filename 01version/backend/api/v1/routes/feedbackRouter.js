@@ -1,6 +1,6 @@
 import express from 'express';
 import { getFeedback, submitFeedback } from '../controllers/feedbackControllers.js';
-import apiKeyAuth from '../middleware/auth.js';
+import {apiKeyAuth} from '../middleware/auth.js';
 
 const router = express.Router();
 
