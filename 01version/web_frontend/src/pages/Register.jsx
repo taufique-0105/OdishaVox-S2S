@@ -4,33 +4,99 @@ import { FaGoogle, FaGithub } from "react-icons/fa";
 const Register = () => {
   const [form, setForm] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [processing, setProcessing] = useState(false);
+  const [status, setStatus] = useState("Please enter all the valid details in the input fields");
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
+    setProcessing(true);
     e.preventDefault();
+    // const validInput = validation();
+
+    // if (!validInput) {
+    //   alert('Please provide all the necessary details.');
+    //   setProcessing(false);
+    //   return;
+    // }
+    
     // UI 
     console.log("Registration form:", form);
+    try {
+      const REGISTRATION_API_URL = `${import.meta.env.VITE_API_URL}/api/v1/register`;
+
+      const response = await fetch(REGISTRATION_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'web_frontend, v0.1.0'
+        },
+        body: JSON.stringify(form)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to register the user');
+      }
+      
+      // If successful
+      const data = await response.json();
+      setStatus("Registration successful!");
+
+      console.log(data)
+      
+    } catch (error) {
+      console.log(error.message);
+      setStatus(error.message || "An error occurred during registration");
+    } finally {
+      setProcessing(false);
+    }
   };
+
+  // const validation = () => {
+  //   if (!form.name.trim() || !form.username.trim() || !form.email.trim() || !form.password || !form.confirmPassword) {
+  //     setStatus("Please fill in all fields");
+  //     return false;
+  //   }
+    
+  //   if (form.password !== form.confirmPassword) {
+  //     setStatus("Passwords do not match");
+  //     return false;
+  //   }
+    
+  //   if (form.password.length < 6) {
+  //     setStatus("Password should be at least 6 characters");
+  //     return false;
+  //   }
+    
+  //   setStatus("");
+  //   return true;
+  // };
 
   const passwordsMismatch =
     form.password && form.confirmPassword && form.password !== form.confirmPassword;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div>
-        <h1>Registration form</h1>
-        <p>jhfmh</p>
-      </div>
+    <div className="flex flex-col min-h-screen bg-gray-100 items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         {/* Title */}
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
           Create an Account
         </h2>
+        
+        {/* Status message */}
+        {status && (
+          <p className={`text-center mb-4 text-sm ${
+            status.includes("successful") ? "text-green-600" : "text-red-600"
+          }`}>
+            {status}
+          </p>
+        )}
 
         {/* Form */}
         <form onSubmit={onSubmit} className="space-y-4">
@@ -48,16 +114,15 @@ const Register = () => {
             />
           </div>
 
-
-          {/* UserName */}
+          {/* Username */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">UserName</label>
+            <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
-              name="name"
-              value={form.name}
+              name="username"
+              value={form.username}
               onChange={onChange}
-              placeholder="Enter your Username"
+              placeholder="Enter your username"
               className="mt-1 w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
@@ -111,9 +176,10 @@ const Register = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full rounded-lg bg-green-600 py-2 text-white font-medium hover:bg-green-700 transition"
+            disabled={processing}
+            className="w-full rounded-lg bg-green-600 py-2 text-white font-medium hover:bg-green-700 transition disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Register
+            {processing ? "Processing..." : "Register"}
           </button>
         </form>
 
