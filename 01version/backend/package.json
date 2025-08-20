@@ -18,6 +18,7 @@
     "express-winston": "^4.2.0",
     "fetch-blob": "^4.0.0",
     "formdata-node": "^6.0.3",
+    "google-auth-library": "^10.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "multer": "^2.0.0",
