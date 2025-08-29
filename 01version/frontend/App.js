@@ -19,6 +19,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { NetworkProvider } from "./context/NetworkContext";
 import { SpeakerProvider } from "./context/SpeakerContext";
 import OfflineNotice from "./components/OfflineNotice";
+import LoginPage from "./components/LoginPage";
+import ProfilePage from "./components/Profile";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -102,6 +104,21 @@ function MainApp() {
             component={MainStackNavigator}
             options={{
               drawerLabel: "Home",
+              headerShown: false, // Header is handled by Stack.Navigator
+            }}
+          />
+          <Drawer.Screen
+            name="Profile"
+            component={ProfilePage}
+            options={{
+              header: ({ navigation }) => <Header navigation={navigation} />,
+            }}
+          />
+          <Drawer.Screen
+            name="Login"
+            component={LoginPage}
+            options={{
+              drawerLabel: "Login",
               headerShown: false, // Header is handled by Stack.Navigator
             }}
           />
