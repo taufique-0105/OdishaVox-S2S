@@ -2,6 +2,7 @@
   "expo": {
     "name": "BharatVox",
     "slug": "bharatvox",
+    "scheme": "bharatvox",
     "description": "BharatVox is a real time speech to speech translation app that instantly interprets and vocalise conversation across one or more Indic languages. Simply speak and BharatVox will bridge communication making conversations seamless, accessible and human.",
     "version": "0.1.0+fb21c52",
     "orientation": "portrait",
