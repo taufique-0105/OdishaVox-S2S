@@ -30,6 +30,7 @@
       "bundleIdentifier": "com.taufique0105.bharatvox"
     },
     "android": {
+      "gradleCommand": ":app:installDebug",
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
@@ -62,14 +63,17 @@
         {
           "android": {
             "enableProguardInReleaseBuilds": true,
-            "extraMavenRepos": ["https://jitpack.io"],
+            "extraMavenRepos": [
+              "https://jitpack.io"
+            ],
             "usesCleartextTraffic": true
           },
           "ios": {
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

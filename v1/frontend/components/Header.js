@@ -108,6 +108,8 @@ const styles = StyleSheet.create({
       ios: 50,
       android: 55,
     }),
+    width: 50,
+    height: 50,
   },
   feedbackButton: {
     padding: 10,
