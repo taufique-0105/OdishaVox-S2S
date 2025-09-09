@@ -1,52 +1,97 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-
-export default function LoginScreen() {
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+const LoginPage = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
+  const [userInfo, setUserInfo] = useState({ user: { name: "" } });
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId:
+        "WEB_CLIENT_ID_FROM_GOOGLE_CLOUD_CONSOLE.apps.googleusercontent.com", // From Google Cloud Console
+      offlineAccess: false,
+      hostedDomain: "",
+      forceCodeForRefreshToken: false,
+      accountName: "",
+      iosClientId:
+        "IOS_CLIENT_ID_FROM_GOOGLE_CLOUD_CONSOLE.apps.googleusercontent.com", // From Google Cloud Console
+      googleServicePlistPath: "",
+      openIdRealm: "",
+      profileImageSize: 120,
+    });
+  }, []);
+
+  const signIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      setUserInfo(userInfo);
+      // You can now send the userInfo to your backend for authentication
+      console.log(userInfo);
+      onLoginSuccess();
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+      } else {
+        // some other error happened
+      }
+    }
+  };
 
   const handleLogin = async () => {
-    console.log("Email:", email);
-    console.log("Password:", password);
-    const userData = { email, password };
-
-    setLoading(true);
-    const LOGIN_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/login`;
-    const response = await fetch(LOGIN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Login failed.");
-
-    console.log("Email/Password login success:", data);
-
-    if (data.token) {
-      localStorage.setItem("authToken", data.token);
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
     }
+    setLoading(true);
+    try {
+      const userData = { email, password };
+      const LOGIN_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/login`;
+      const response = await fetch(LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
 
-    setEmail("");
-    setPassword("");
-    setLoading(false);
-    // navigate("/profile");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed.");
+      }
+
+      if (data.token) {
+        await AsyncStorage.setItem("authToken", data.token);
+        setUserInfo(data.user);
+        onLoginSuccess();
+      }
+    } catch (error) {
+      Alert.alert("Login Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
 
-      {/* Email Input */}
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -57,7 +102,6 @@ export default function LoginScreen() {
         autoCapitalize="none"
       />
 
-      {/* Password Input */}
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -67,34 +111,35 @@ export default function LoginScreen() {
         secureTextEntry
       />
 
-      {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login</Text>
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.loginText}>
+          {loading ? "Logging in..." : "Login"}
+        </Text>
       </TouchableOpacity>
 
-      {/* Divider */}
       <Text style={styles.orText}>OR</Text>
 
-      {/* Google Login Button (UI only) */}
-      <TouchableOpacity style={styles.googleButton}>
-        <FontAwesome
-          name="google"
-          size={20}
-          color="#DB4437"
-          style={{ marginRight: 8 }}
-        />
-        <Text style={styles.googleText}>Continue with Google</Text>
-      </TouchableOpacity>
-
-      {userInfo && <Text>Logged in as: {userInfo.user.name}</Text>}
+      <GoogleSigninButton
+        style={{ width: 192, height: 48 }}
+        size={GoogleSigninButton.Size.Wide}
+        color={GoogleSigninButton.Color.Dark}
+        onPress={signIn}
+      />
     </View>
   );
-}
+};
+
+export default LoginPage;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#fff",
   },
@@ -106,6 +151,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   input: {
+    width: "100%",
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
@@ -115,6 +161,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   loginButton: {
+    width: "100%",
     backgroundColor: "#4F46E5",
     padding: 15,
     borderRadius: 8,
@@ -131,16 +178,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: "#666",
   },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-  },
-  googleText: {
+  userInfo: {
+    marginTop: 20,
     fontSize: 16,
     color: "#333",
   },

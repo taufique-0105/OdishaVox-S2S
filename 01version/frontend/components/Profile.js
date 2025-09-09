@@ -8,8 +8,8 @@ import {
   ScrollView 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-const ProfilePage = () => {
+import AsyncStorage from '@react-native-async-storage/async-storage';
+const ProfilePage = ({ onLogout }) => {
   // Sample user data
   const user = {
     name: 'Alex Johnson',
@@ -22,6 +22,11 @@ const ProfilePage = () => {
       followers: 2458,
       following: 342
     }
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("authToken");
+    onLogout();
   };
 
   return (
@@ -108,7 +113,7 @@ const ProfilePage = () => {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton}>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
     </ScrollView>

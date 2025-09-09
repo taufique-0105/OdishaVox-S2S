@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, StatusBar, Text } from "react-native";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import Header from "./components/Header";
-import Footer from "./components/Footer";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -21,11 +20,21 @@ import { SpeakerProvider } from "./context/SpeakerContext";
 import OfflineNotice from "./components/OfflineNotice";
 import LoginPage from "./components/LoginPage";
 import ProfilePage from "./components/Profile";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-// Stack Navigator for Home, TTS, STT, and STS screens
+function AuthStackNavigator({ onLoginSuccess }) {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login">
+        {(props) => <LoginPage {...props} onLoginSuccess={onLoginSuccess} />}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
 function MainStackNavigator() {
   return (
     <Stack.Navigator
@@ -72,6 +81,36 @@ function MainStackNavigator() {
 
 function MainApp() {
   const insets = useSafeAreaInsets();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        setIsLoggedIn(true);
+      }
+      setIsLoading(false);
+    };
+    checkLoginStatus();
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("authToken");
+    setIsLoggedIn(false);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -84,62 +123,58 @@ function MainApp() {
     >
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <NavigationContainer>
-        <Drawer.Navigator
-          initialRouteName="Main"
-          screenOptions={{
-            drawerPosition: "right",
-            drawerStyle: {
-              backgroundColor: "#073d5c",
-              width: 240,
-            },
-            drawerActiveTintColor: "#fff",
-            drawerInactiveTintColor: "#ccc",
-            drawerLabelStyle: {
-              fontSize: 16,
-            },
-          }}
-        >
-          <Drawer.Screen
-            name="Main"
-            component={MainStackNavigator}
-            options={{
-              drawerLabel: "Home",
-              headerShown: false, // Header is handled by Stack.Navigator
+        {isLoggedIn ? (
+          <Drawer.Navigator
+            initialRouteName="Main"
+            screenOptions={{
+              drawerPosition: "right",
+              drawerStyle: {
+                backgroundColor: "#073d5c",
+                width: 240,
+              },
+              drawerActiveTintColor: "#fff",
+              drawerInactiveTintColor: "#ccc",
+              drawerLabelStyle: {
+                fontSize: 16,
+              },
             }}
-          />
-          <Drawer.Screen
-            name="Profile"
-            component={ProfilePage}
-            options={{
-              header: ({ navigation }) => <Header navigation={navigation} />,
-            }}
-          />
-          <Drawer.Screen
-            name="Login"
-            component={LoginPage}
-            options={{
-              drawerLabel: "Login",
-              headerShown: false, // Header is handled by Stack.Navigator
-            }}
-          />
-          <Drawer.Screen
-            name="Feedback"
-            component={Feedback}
-            options={{
-              presentation: "modal",
-              header: ({ navigation }) => <Header navigation={navigation} />,
-            }}
-          />
-          <Drawer.Screen
-            name="Settings"
-            component={Settings}
-            options={{
-              header: ({ navigation }) => <Header navigation={navigation} />,
-            }}
-          />
-        </Drawer.Navigator>
+          >
+            <Drawer.Screen
+              name="Main"
+              component={MainStackNavigator}
+              options={{
+                drawerLabel: "Home",
+                headerShown: false,
+              }}
+            />
+            <Drawer.Screen
+              name="Profile"
+              options={{
+                header: ({ navigation }) => <Header navigation={navigation} />,
+              }}
+            >
+              {(props) => <ProfilePage {...props} onLogout={handleLogout} />}
+            </Drawer.Screen>
+            <Drawer.Screen
+              name="Feedback"
+              component={Feedback}
+              options={{
+                presentation: "modal",
+                header: ({ navigation }) => <Header navigation={navigation} />,
+              }}
+            />
+            <Drawer.Screen
+              name="Settings"
+              component={Settings}
+              options={{
+                header: ({ navigation }) => <Header navigation={navigation} />,
+              }}
+            />
+          </Drawer.Navigator>
+        ) : (
+          <AuthStackNavigator onLoginSuccess={handleLogin} />
+        )}
       </NavigationContainer>
-      {/* <Footer /> */}
     </View>
   );
 }
@@ -163,11 +198,5 @@ const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  screen: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
   },
 });
