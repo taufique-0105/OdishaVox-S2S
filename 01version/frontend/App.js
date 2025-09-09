@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, StatusBar, Text } from "react-native";
+import { View, StyleSheet, StatusBar, Text, Image } from "react-native";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -21,6 +21,7 @@ import OfflineNotice from "./components/OfflineNotice";
 import LoginPage from "./components/LoginPage";
 import ProfilePage from "./components/Profile";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Register from "./components/Register";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -30,6 +31,9 @@ function AuthStackNavigator({ onLoginSuccess }) {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login">
         {(props) => <LoginPage {...props} onLoginSuccess={onLoginSuccess} />}
+      </Stack.Screen>
+      <Stack.Screen name="Register">
+        {(props) => <Register {...props} onLoginSuccess={onLoginSuccess} />}
       </Stack.Screen>
     </Stack.Navigator>
   );
@@ -83,6 +87,7 @@ function MainApp() {
   const insets = useSafeAreaInsets();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -104,10 +109,26 @@ function MainApp() {
     setIsLoggedIn(false);
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isLoading) return;
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  if (isLoading || showSplash) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}>
+      <Image
+        source={require("./assets/FullLogo_Transparent-2.png")}
+        style={{ width: 180, height: 180, resizeMode: "contain", marginBottom: 24 }}
+      />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <Text style={{ fontSize: 20, fontWeight: "600", color: "#073d5c", marginBottom: 8 }}>
+        Welcome to BharatVox
+      </Text>
+      <Text style={{ fontSize: 16, color: "#555" }}>Loading, please wait...</Text>
       </View>
     );
   }

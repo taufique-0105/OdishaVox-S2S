@@ -7,13 +7,15 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   GoogleSignin,
   GoogleSigninButton,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-const LoginPage = ({ onLoginSuccess, navigation }) => {
+
+const Register = ({ onLoginSuccess, navigation }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,16 +58,16 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
     }
   };
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      Alert.alert("Error", "Please fill in all fields.");
       return;
     }
     setLoading(true);
     try {
-      const userData = { email, password };
-      const LOGIN_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/login`;
-      const response = await fetch(LOGIN_URL, {
+      const userData = { name, email, password };
+      const REGISTER_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/register`;
+      const response = await fetch(REGISTER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -73,16 +75,15 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Login failed.");
+        throw new Error(data.message || "Registration failed.");
       }
 
       if (data.token) {
         await AsyncStorage.setItem("authToken", data.token);
-        setUserInfo(data.user);
-        onLoginSuccess();
+        navigation.navigate("Login");
       }
     } catch (error) {
-      Alert.alert("Login Error", error.message);
+      Alert.alert("Registration Error", error.message);
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,16 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Register</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        placeholderTextColor="#888"
+        value={name}
+        onChangeText={setName}
+        autoCapitalize="words"
+      />
 
       <TextInput
         style={styles.input}
@@ -112,16 +122,24 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
       />
 
       <TouchableOpacity
-        style={styles.loginButton}
-        onPress={handleLogin}
+        style={styles.registerButton}
+        onPress={handleRegister}
         disabled={loading}
       >
-        <Text style={styles.loginText}>
-          {loading ? "Logging in..." : "Login"}
+        <Text style={styles.registerText}>
+          {loading ? "Registering..." : "Register"}
         </Text>
       </TouchableOpacity>
-
-      <Text style={styles.orText}>OR</Text>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate("Login");
+        }}
+        style={{ marginTop: 20 }}
+      >
+        <Text style={{ color: "#4F46E5", fontSize: 16 }}>
+          Already have an account? Login
+        </Text>
+      </TouchableOpacity>
 
       <GoogleSigninButton
         style={{ width: 192, height: 48, marginTop: 10 }}
@@ -129,22 +147,11 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
         color={GoogleSigninButton.Color.Dark}
         onPress={signIn}
       />
-
-      <TouchableOpacity>
-        <Text
-          style={{ color: "#4F46E5", marginTop: 20 }}
-          onPress={() => {
-            navigation.navigate("Register");
-          }}
-        >
-          New user? Register Here
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-export default LoginPage;
+export default Register;
 
 const styles = StyleSheet.create({
   container: {
@@ -171,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  loginButton: {
+  registerButton: {
     width: "100%",
     backgroundColor: "#4F46E5",
     padding: 15,
@@ -179,19 +186,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
   },
-  loginText: {
+  registerText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  orText: {
-    textAlign: "center",
-    marginVertical: 10,
-    color: "#666",
-  },
-  userInfo: {
-    marginTop: 20,
-    fontSize: 16,
-    color: "#333",
   },
 });
