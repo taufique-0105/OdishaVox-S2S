@@ -18,6 +18,7 @@ const Register = ({ onLoginSuccess, navigation }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [userInfo, setUserInfo] = useState({ user: { name: "" } });
 
@@ -37,14 +38,34 @@ const Register = ({ onLoginSuccess, navigation }) => {
     });
   }, []);
 
+  const googleDataBackend = async (token) => {
+    try {
+      const API_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/google`;
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: token }),
+      });
+
+      const data = response.json();
+      console.log(data);
+    } catch (error) {}
+  };
+
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       setUserInfo(userInfo);
+      const {
+        data: { idToken, user },
+      } = userInfo;
       // You can now send the userInfo to your backend for authentication
       console.log(userInfo);
       onLoginSuccess();
+      googleDataBackend(idToken);
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled the login flow
@@ -65,7 +86,7 @@ const Register = ({ onLoginSuccess, navigation }) => {
     }
     setLoading(true);
     try {
-      const userData = { name, email, password };
+      const userData = { name, email, password, confirmPassword };
       const REGISTER_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/register`;
       const response = await fetch(REGISTER_URL, {
         method: "POST",
@@ -82,6 +103,7 @@ const Register = ({ onLoginSuccess, navigation }) => {
         await AsyncStorage.setItem("authToken", data.token);
         navigation.navigate("Login");
       }
+      onLoginSuccess();
     } catch (error) {
       Alert.alert("Registration Error", error.message);
     } finally {
@@ -121,6 +143,15 @@ const Register = ({ onLoginSuccess, navigation }) => {
         secureTextEntry
       />
 
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        placeholderTextColor="#888"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
+
       <TouchableOpacity
         style={styles.registerButton}
         onPress={handleRegister}
@@ -130,6 +161,16 @@ const Register = ({ onLoginSuccess, navigation }) => {
           {loading ? "Registering..." : "Register"}
         </Text>
       </TouchableOpacity>
+
+      <Text style={styles.orText}>OR</Text>
+
+      <GoogleSigninButton
+        style={{ width: 192, height: 48, marginTop: 10 }}
+        size={GoogleSigninButton.Size.Wide}
+        color={GoogleSigninButton.Color.Dark}
+        onPress={signIn}
+      />
+
       <TouchableOpacity
         onPress={() => {
           navigation.navigate("Login");
@@ -140,13 +181,6 @@ const Register = ({ onLoginSuccess, navigation }) => {
           Already have an account? Login
         </Text>
       </TouchableOpacity>
-
-      <GoogleSigninButton
-        style={{ width: 192, height: 48, marginTop: 10 }}
-        size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Dark}
-        onPress={signIn}
-      />
     </View>
   );
 };
@@ -185,6 +219,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 15,
+  },
+  orText: {
+    textAlign: "center",
+    marginVertical: 10,
+    color: "#666",
   },
   registerText: {
     color: "#fff",

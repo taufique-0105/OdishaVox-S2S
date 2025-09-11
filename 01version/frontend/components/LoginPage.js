@@ -35,14 +35,35 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
     });
   }, []);
 
+  const googleDataBackend = async (token) => {
+    try {
+      const API_URL = `${process.env.EXPO_PUBLIC_URL}/api/v1/auth/google`;
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: token }),
+      });
+
+      const data = response.json();
+      console.log(data);
+    } catch (error) {}
+  };
+
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       setUserInfo(userInfo);
       // You can now send the userInfo to your backend for authentication
-      console.log(userInfo);
+      // console.log(userInfo);
+      const {
+        data: { idToken, user },
+      } = userInfo;
+      // console.log(idToken)
       onLoginSuccess();
+      googleDataBackend(idToken);
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled the login flow
@@ -132,7 +153,8 @@ const LoginPage = ({ onLoginSuccess, navigation }) => {
 
       <TouchableOpacity>
         <Text
-          style={{ color: "#4F46E5", marginTop: 20 }}
+          style={{ color: "#4F46E5", fontSize: 16, marginTop: 20
+           }}
           onPress={() => {
             navigation.navigate("Register");
           }}
