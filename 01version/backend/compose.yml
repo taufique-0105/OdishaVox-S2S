@@ -1,0 +1,10 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app        # mount current folder to /app inside container
+      - /app/node_modules  # prevent overwriting node_modules
+      - ./logs:/app/logs
+    command: npx nodemon server.js

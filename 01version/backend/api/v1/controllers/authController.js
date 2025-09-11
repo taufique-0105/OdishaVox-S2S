@@ -16,6 +16,7 @@ const generateToken = (id) => {
 const googleAuth = async (req, res) => {
     try {
         const { token } = req.body;
+        console.log(token)
 
         if (!token) {
             return res.status(400).json({ message: "Google token is required" });
@@ -43,7 +44,7 @@ const googleAuth = async (req, res) => {
             // ✅ ID Token case (JWT from Google One-Tap / Expo id_token)
             const ticket = await client.verifyIdToken({
                 idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID,
+                audience: process.env.GOOGLE_WEB_CLIENT_ID,
             });
             payload = ticket.getPayload();
         }

@@ -1,5 +1,12 @@
 import logger from "../.././../logger.js";
 import User from "../models/userModel.js";
+import jwt from 'jsonwebtoken';
+
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: '30d',
+    });
+};
 
 const registerUser = async (req, res) => {
     try {
@@ -20,15 +27,19 @@ const registerUser = async (req, res) => {
         }
 
         const user = await User.create({
+            name,
             email,
             password,
         });
 
         if (user) {
+            const token = generateToken(user._id); // Generate JWT token
             logger.info("User registered successfully", { userId: user._id, email: user.email });
             res.status(201).json({
+                name: user.name,
                 _id: user._id,
                 email: user.email,
+                token: token, // Include the token in the response
                 message: "User registered successfully"
             });
         } else {
