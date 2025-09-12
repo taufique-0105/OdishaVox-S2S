@@ -9,7 +9,7 @@ const SARVAM_API_URL = "https://api.sarvam.ai/speech-to-text";
  * Converts audio buffer to text using Sarvam AI API
  * @param {Object} audioFile - File object containing buffer, mimetype, and originalname
  * @param {Object} options - Optional parameters
- * @param {string} options.model - Model to use (default: 'saarika:v2')
+ * @param {string} options.model - Model to use (default: 'saarika:v2.5')
  * @param {string} options.languageCode - Language code (default: 'unknown')
  * @returns {Promise<Object>} - API response data
  * @throws {Error} - If conversion fails
@@ -21,7 +21,7 @@ export const convertSpeechToText = async (audioFile, options = {}) => {
   const languageCode = source_language;
 
   // console.log("Language code:", languageCode);
-  const model = options.model || "saarika:v2";
+  const model = options.model || "saarika:v2.5";
 
   if (!audioFile?.buffer) {
     throw new Error("Missing audio file buffer");
