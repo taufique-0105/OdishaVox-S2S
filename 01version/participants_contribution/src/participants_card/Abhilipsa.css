@@ -1,0 +1,28 @@
+.card-str{
+    box-sizing: border-box;
+    width: 300px;
+    border-radius: 5%;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: gainsboro;
+}
+
+.card-content{
+    padding: 10px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.card-title-bg{
+    font-size: larger;
+    font-weight: bold;
+    border:2px;
+    background-color:  rgb(242, 192, 126);
+    border-radius: 30px;
+    width: 100px;
+    padding-left: 10px;
+}
+
+.btn{
+    background-color: grey;
+    color: whitesmoke;
+    margin-top: 20px;
+}
