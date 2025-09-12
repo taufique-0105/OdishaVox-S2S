@@ -1,6 +1,7 @@
 import React from 'react'
 import Shailee from './participants_card/Shailee'
 import Taufique from './participants_card/Taufique'
+import Nikhhil from './participants_card/Nikhhil'
 import Tirthankar from './participants_card/Tirthankar'
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
       <Shailee/>
       <Taufique/>
       <Tirthankar/>
+      <Nikhhil/> 
     </div>
   )
 }
