@@ -4,7 +4,7 @@ import Taufique from './participants_card/Taufique'
 import Abhilipsa from './participants_card/Abhilipsa'
 import Nikhhil from './participants_card/Nikhhil'
 import Tirthankar from './participants_card/Tirthankar'
-
+import Aditya from './participants_card/Aditya'
 function App() {
   return (
     <div>
@@ -13,6 +13,7 @@ function App() {
       <Tirthankar/>
       <Nikhhil/> 
       <Abhilipsa/>
+      <Aditya/>
     </div>
   )
 }
