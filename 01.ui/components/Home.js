@@ -11,6 +11,7 @@ import {
   Easing
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
+import SpeechButton from './SpeechButton';
 import Footer from './Footer';
 
 const { width } = Dimensions.get('window');
@@ -21,6 +22,17 @@ const Home = ({ navigation }) => {
   const logoOpacity = new Animated.Value(0);
   const buttonTranslateY = new Animated.Value(30);
   const titleScale = new Animated.Value(0.9);
+
+  // Event Handlers 
+  const startListening = () => {
+    console.log('Started listening...');
+    // Add your speech-to-text start logic here
+  };
+
+  const stopListening = () => {
+    console.log('Stopped listening.');
+    // Add your speech-to-text stop logic here
+  };
 
   React.useEffect(() => {
     // Logo fade-in animation
@@ -109,6 +121,46 @@ const Home = ({ navigation }) => {
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
+
+
+          <Animated.View style={{ 
+              transform: [{ translateY: buttonTranslateY }],
+              opacity: buttonTranslateY.interpolate({
+                inputRange: [0, 30],
+                outputRange: [1, 0]
+              })
+            }}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onPress={() => navigation.navigate("TTS")}
+              >
+                <LinearGradient
+                  colors={['#4a6cf7', '#6a8eff']}
+                  style={[styles.button, styles.buttonElevation]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+
+                    <Text style={styles.buttonText}>କଣ ଚାଲିଛି?</Text>
+                    <Text style={styles.buttonSubtext}>କିଛି କୁହନ୍ତୁ!</Text>
+
+                    <SpeechButton 
+                      onPressIn={startListening} 
+                      onPressOut={stopListening}
+                      style={{
+                        flex: 1,                  // Takes up all available space
+                        justifyContent: 'center', // Centers vertically
+                        alignItems: 'center',     // Centers horizontally
+                      }} />
+                  </Animated.View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+
+
             <Animated.View style={{ 
               transform: [{ translateY: buttonTranslateY }],
               opacity: buttonTranslateY.interpolate({
