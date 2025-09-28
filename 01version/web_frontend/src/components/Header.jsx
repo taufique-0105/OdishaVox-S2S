@@ -19,11 +19,19 @@ function Header() {
     { label: 'Contact', path: '/contact' },
   ];
 
-  const accountNavItems = [
+  // const accountNavItems = [
+  //   { label: 'Login', path: '/login', icon: <FiLogIn className="text-lg" /> },
+  //   { label: 'Register', path: '/register', icon: <FiUserPlus className="text-lg" /> },
+  //   { label: 'Settings', path: '/settings', icon: <FiSettings className="text-lg" /> },
+  // ];
+  const token = localStorage.getItem("authToken")
+  const logedinNavItems = [
+    { label: 'Settings', path: '/settings', icon: <FiSettings className="text-lg" /> },
+  ]
+  const logedoutNavItems = [
     { label: 'Login', path: '/login', icon: <FiLogIn className="text-lg" /> },
     { label: 'Register', path: '/register', icon: <FiUserPlus className="text-lg" /> },
-    { label: 'Settings', path: '/settings', icon: <FiSettings className="text-lg" /> },
-  ];
+  ]
 
   return (
     <header className="w-full bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3 sticky top-0 z-50 shadow-sm">
@@ -112,19 +120,35 @@ function Header() {
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    {accountNavItems.map((item) => (
-                      <button
-                        key={item.label}
-                        onClick={() => {
-                          navigate(item.path);
-                          setIsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-left text-gray-800 hover:bg-cyan-50 hover:text-cyan-600 transition-colors"
-                      >
-                        {item.icon}
-                        <span>{item.label}</span>
-                      </button>
-                    ))}
+                    {token
+                      ? logedinNavItems.map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left text-gray-800 hover:bg-cyan-50 hover:text-cyan-600 transition-colors"
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </button>
+                      ))
+                      : logedoutNavItems.map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left text-gray-800 hover:bg-cyan-50 hover:text-cyan-600 transition-colors"
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </button>
+                      ))
+                    }
+
                   </div>
                 )}
               </div>

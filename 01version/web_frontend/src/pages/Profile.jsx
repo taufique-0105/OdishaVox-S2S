@@ -69,7 +69,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     // Remove JWT from localStorage
-    localStorage.removeItem("token");
+    localStorage.removeItem("authToken");
     // Optional: also clear user details
     localStorage.removeItem("user");
     // Redirect to login
